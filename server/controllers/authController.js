@@ -8,50 +8,54 @@ const generateOTP = () =>
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
+
+    // ✅ Normalize email
+    email = email?.toLowerCase().trim();
 
     // 1️⃣ College email validation
-    // if (!email.endsWith("@bvcgroup.in")) {
-    //   return res.status(400).json({
-    //     message: "Use only @bvcgroup.in email",
-    //   });
-    // }
+    if (!email.endsWith("@bvcgroup.in")) {
+      return res.status(400).json({
+        message: "Only @bvcgroup.in email addresses are allowed",
+      });
+    }
 
     // 2️⃣ Existing user check
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists",
-      });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // 3️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 4️⃣ Generate OTP
     const otp = generateOTP();
 
-    // 5️⃣ Create user
+    // 4️⃣ Create user
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       otp,
-      otpExpiry: Date.now() + 5 * 60 * 1000, // 5 mins
+      otpExpiry: Date.now() + 5 * 60 * 1000,
     });
 
-    // 6️⃣ Send OTP mail
+    // 5️⃣ Send OTP mail
     try {
-  await transporter.sendMail({
-    from: process.env.MAIL_USER || "no-reply@bvcdigitalhub.com",
-    to: email,
-    subject: "BVC DigitalHub OTP Verification",
-    text: `Your OTP is ${otp}. It expires in 5 minutes.`,
-  });
-} catch (mailError) {
-  console.error("Mail failed:", mailError.message);
-}
+      await transporter.sendMail({
+        from: `"BVC DigitalHub" <${process.env.MAIL_USER}>`,
+        to: email,
+        subject: "OTP Verification",
+        text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+      });
+    } catch (mailError) {
+      // ❗ Rollback user if mail fails
+      await User.findByIdAndDelete(user._id);
 
+      return res.status(500).json({
+        message: "Failed to send OTP email",
+        error: mailError.message,
+      });
+    }
 
     res.status(201).json({
       message: "Signup successful. OTP sent to email.",
@@ -96,7 +100,6 @@ export const verifyOtp = async (req, res) => {
         message: "OTP expired",
       });
     }
-    
 
     // 5️⃣ Verify user
     user.isVerified = true;
@@ -106,9 +109,9 @@ export const verifyOtp = async (req, res) => {
     await user.save();
 
     res.json({
-  message: "OTP verified",
-  isOnboarded: user.isOnboarded
-});
+      message: "OTP verified",
+      isOnboarded: user.isOnboarded,
+    });
   } catch (error) {
     res.status(500).json({
       message: "OTP verification failed",
@@ -116,8 +119,6 @@ export const verifyOtp = async (req, res) => {
     });
   }
 };
-
-
 
 export const login = async (req, res) => {
   try {
@@ -147,11 +148,9 @@ export const login = async (req, res) => {
     }
 
     // 4️⃣ Generate JWT
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.status(200).json({
       message: "Login successful",
