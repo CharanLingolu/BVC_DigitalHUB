@@ -1,6 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Briefcase,
+  Calendar,
+  Users,
+  FolderKanban,
+} from "lucide-react";
+
+import { toast } from "react-toastify";
 
 const Navbar = () => {
   const token = localStorage.getItem("token");
@@ -9,100 +21,98 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login");
+
+    toast.success("Logged out successfully 👋", {
+      autoClose: 1500,
+    });
+
+    setTimeout(() => {
+      navigate("/");
+    }, 1500);
   };
 
-  const NavLink = ({ to, children }) => (
+  const NavLink = ({ to, children, icon: Icon }) => (
     <Link
       to={to}
       onClick={() => setOpen(false)}
-      className="block px-3 py-2 rounded hover:bg-blue-50 hover:text-blue-600 font-medium"
+      className="flex items-center gap-2 px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-all"
     >
+      {Icon && <Icon size={18} />}
       {children}
     </Link>
   );
 
   return (
-    <nav className="w-full bg-white shadow-md px-6 py-4">
-      <div className="flex justify-between items-center">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
         {/* Logo */}
         <div
-          className="text-xl font-bold text-blue-600 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer"
           onClick={() => navigate("/")}
         >
-          BVC_DigitalHub
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black">
+            BVC
+          </div>
+          <span className="text-xl font-black text-slate-900 dark:text-white">
+            Digital<span className="text-blue-600">Hub</span>
+          </span>
         </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Desktop */}
+        <div className="hidden md:flex items-center gap-4">
           {!token ? (
             <>
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 font-medium"
+                className="font-bold text-slate-600 dark:text-slate-300"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold shadow"
               >
                 Sign Up
               </Link>
             </>
           ) : (
             <>
-              <NavLink to="/home">Home</NavLink>
-              <NavLink to="/projects">Projects</NavLink>
-              <NavLink to="/staff">Staff</NavLink>
-              <NavLink to="/events">Events</NavLink>
-              <NavLink to="/jobs">Jobs</NavLink>
-              <NavLink to="/profile">Profile</NavLink>
+              <NavLink to="/home" icon={LayoutDashboard}>
+                Home
+              </NavLink>
+              <NavLink to="/projects" icon={FolderKanban}>
+                Projects
+              </NavLink>
+              <NavLink to="/staff" icon={Users}>
+                Staff
+              </NavLink>
+              <NavLink to="/events" icon={Calendar}>
+                Events
+              </NavLink>
+              <NavLink to="/jobs" icon={Briefcase}>
+                Jobs
+              </NavLink>
+              <NavLink to="/profile" icon={User}>
+                Profile
+              </NavLink>
               <button
                 onClick={handleLogout}
-                className="text-red-500 font-medium px-3 py-2 hover:bg-red-50 rounded"
+                className="flex items-center gap-2 text-red-500 font-bold px-4 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20"
               >
-                Logout
+                <LogOut size={18} /> Logout
               </button>
             </>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile */}
         <button
-          className="md:hidden"
+          className="md:hidden text-slate-900 dark:text-white"
           onClick={() => setOpen(!open)}
         >
-          {open ? <X size={24} /> : <Menu size={24} />}
+          {open ? <X /> : <Menu />}
         </button>
       </div>
-
-      {/* Mobile Menu */}
-      {open && (
-        <div className="md:hidden mt-4 space-y-2">
-          {!token ? (
-            <>
-              <NavLink to="/login">Login</NavLink>
-              <NavLink to="/signup">Sign Up</NavLink>
-            </>
-          ) : (
-            <>
-              <NavLink to="/home">Home</NavLink>
-              <NavLink to="/projects">Projects</NavLink>
-              <NavLink to="/staff">Staff</NavLink>
-              <NavLink to="/events">Events</NavLink>
-              <NavLink to="/jobs">Jobs</NavLink>
-              <NavLink to="/profile">Profile</NavLink>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-3 py-2 rounded text-red-500 hover:bg-red-50 font-medium"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </nav>
   );
 };

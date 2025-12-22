@@ -7,48 +7,43 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProjects = async () => {
-    try {
-      const res = await API.get("/projects");
-      setProjects(res.data);
-    } catch (error) {
-      console.error("Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProjects();
+    API.get("/projects")
+      .then((res) => setProjects(res.data))
+      .catch(() => console.error("Failed to load projects"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0d1117]">
       <Navbar />
+      <div className="h-20" />
 
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-8">
           Student Projects
         </h1>
 
         {loading ? (
-          <p>Loading projects...</p>
+          <p className="text-slate-500">Loading projects...</p>
         ) : projects.length === 0 ? (
-          <p>No projects found</p>
+          <Empty text="No projects found" />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project) => (
-              <ProjectCard
-                key={project._id}
-                project={project}
-                refresh={fetchProjects}
-              />
+              <ProjectCard key={project._id} project={project} />
             ))}
           </div>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 };
 
 export default Projects;
+
+const Empty = ({ text }) => (
+  <div className="text-center py-24 bg-white dark:bg-[#161b22] rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500">
+    {text}
+  </div>
+);

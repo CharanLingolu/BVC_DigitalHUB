@@ -12,27 +12,43 @@ const Staff = () => {
   }, []);
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0d1117]">
       <Navbar />
-      <div className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Faculty</h1>
+      <div className="h-20" />
+
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-8">
+          Faculty
+        </h1>
 
         {staff.length === 0 ? (
-          <p>No staff data available</p>
+          <Empty text="No faculty data available" />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {staff.map((s) => (
-              <div key={s._id} className="bg-white p-4 rounded shadow">
-                <h3 className="font-bold">{s.name}</h3>
-                <p className="text-sm text-gray-600">{s.department}</p>
-                <p className="text-sm">{s.designation}</p>
+              <div
+                key={s._id}
+                className="bg-white dark:bg-[#161b22] p-6 rounded-2xl shadow border border-slate-200 dark:border-slate-800"
+              >
+                <h3 className="font-bold text-lg">{s.name}</h3>
+                <p className="text-slate-600 dark:text-slate-400">
+                  {s.department}
+                </p>
+                <p className="text-sm text-slate-500">{s.designation}</p>
               </div>
             ))}
           </div>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 };
 
 export default Staff;
+
+/* ✅ ADD THIS */
+const Empty = ({ text }) => (
+  <div className="text-center py-24 bg-white dark:bg-[#161b22] rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500">
+    {text}
+  </div>
+);

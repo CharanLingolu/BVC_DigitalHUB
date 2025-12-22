@@ -1,57 +1,69 @@
-import API from "../services/api";
-import { toast } from "react-toastify";
+import { Heart } from "lucide-react";
 
-const ProjectCard = ({ project, refresh }) => {
-  const handleLike = async () => {
-    try {
-      await API.post(`/projects/${project._id}/like`);
-      toast.success("Project liked");
-      refresh();
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Like failed"
-      );
-    }
-  };
-
+const ProjectCard = ({ project }) => {
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h3 className="text-lg font-bold">{project.title}</h3>
+    <div
+      className="
+        bg-white dark:bg-[#161b22]
+        border border-slate-200 dark:border-slate-800
+        rounded-2xl p-6
+        shadow-sm dark:shadow-none
+        hover:shadow-xl dark:hover:shadow-blue-900/10
+        transition-all duration-300
+      "
+    >
+      {/* Title */}
+      <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+        {project.title}
+      </h2>
 
-      <p className="text-sm text-gray-600 mt-1">
-        By {project.user?.name}
+      {/* Author */}
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        By {project.owner?.name || "Unknown"}
       </p>
 
-      <p className="mt-2 text-gray-700">
+      {/* Description */}
+      <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 line-clamp-3">
         {project.description}
       </p>
 
-      <div className="flex flex-wrap gap-2 mt-2">
-        {project.techStack.map((tech, i) => (
+      {/* Tech Stack */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {project.techStack?.map((tech, idx) => (
           <span
-            key={i}
-            className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded"
+            key={idx}
+            className="
+              px-3 py-1 rounded-full text-xs font-semibold
+              bg-blue-100 text-blue-700
+              dark:bg-blue-900/30 dark:text-blue-400
+            "
           >
             {tech}
           </span>
         ))}
       </div>
 
-      <div className="flex justify-between items-center mt-4">
-        <button
-          onClick={handleLike}
-          className="text-red-500 font-medium"
-        >
-          ❤️ {project.likes.length}
-        </button>
+      {/* Footer */}
+      <div className="flex items-center justify-between">
+        {/* Likes */}
+        <div className="flex items-center gap-1 text-pink-600 dark:text-pink-400 font-bold">
+          <Heart size={16} fill="currentColor" />
+          <span>{project.likes?.length || 0}</span>
+        </div>
 
-        {project.repoLink && (
+        {/* Repo Link */}
+        {project.repoUrl && (
           <a
-            href={project.repoLink}
+            href={project.repoUrl}
             target="_blank"
-            className="text-blue-600 text-sm"
+            rel="noopener noreferrer"
+            className="
+              text-blue-600 dark:text-blue-400
+              font-bold text-sm
+              hover:underline
+            "
           >
-            View Repo
+            View Repo →
           </a>
         )}
       </div>
