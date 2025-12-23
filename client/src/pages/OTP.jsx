@@ -22,10 +22,14 @@ const OTP = () => {
         otp,
       });
 
-      toast.success(res.data.message, {
-        autoClose: 1500,
-      });
-      navigate("/onboarding");
+      toast.success(res.data.message);
+
+// 🔐 STORE TOKEN
+localStorage.setItem("token", res.data.token);
+
+// ➡️ Go to onboarding
+navigate("/onboarding");
+
     } catch (error) {
       toast.error(error.response?.data?.message || "OTP verification failed", {
         autoClose: 1500,

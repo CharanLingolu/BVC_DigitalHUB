@@ -16,7 +16,14 @@ import Events from "./pages/Events";
 import Jobs from "./pages/Jobs";
 import Onboarding from "./pages/Onboarding";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ProjectDetails from "./pages/ProjectDetails";
+import StaffDetails from "./pages/StaffDetails";
+import AdminLogin from "./admin/pages/AdminLogin";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
+import AdminUsers from "./admin/pages/Users";
+import AdminStaff from "./admin/pages/Staff";
+import UserDetails from "./admin/pages/UserDetails";
 function App() {
   // ✅ SINGLE SOURCE OF TRUTH
   const [dark, setDark] = useState(false);
@@ -44,7 +51,7 @@ function App() {
 
       {/* ✅ TOAST THEME SYNCED */}
       <ToastContainer position="top-center" theme={dark ? "dark" : "light"} />
-
+      
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
@@ -52,6 +59,56 @@ function App() {
         <Route path="/otp" element={<OTP />} />
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<Onboarding />} />
+
+<Route
+  path="/admin/users"
+  element={
+    <AdminProtectedRoute>
+      <AdminUsers />
+    </AdminProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/staff"
+  element={
+    <AdminProtectedRoute>
+      <AdminStaff />
+    </AdminProtectedRoute>
+  }
+/>
+
+<Route path="/admin/login" element={<AdminLogin />} />
+
+
+<Route
+  path="/admin/users/:id"
+  element={
+    <AdminProtectedRoute>
+      <UserDetails />
+    </AdminProtectedRoute>
+  }
+/>
+
+
+<Route
+  path="/admin/dashboard"
+  element={
+    <AdminProtectedRoute>
+      <AdminDashboard />
+    </AdminProtectedRoute>
+  }
+/>
+
+
+<Route
+  path="/projects/:id"
+  element={
+    <ProtectedRoute>
+      <ProjectDetails />
+    </ProtectedRoute>
+  }
+/>
 
         {/* PROTECTED */}
         <Route
@@ -102,6 +159,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/staff/:id"
+  element={
+    <ProtectedRoute>
+      <StaffDetails />
+    </ProtectedRoute>
+  }
+/>
+
       </Routes>
     </BrowserRouter>
   );

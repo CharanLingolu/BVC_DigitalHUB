@@ -19,7 +19,7 @@ app.use(express.json());
 
 
 app.use("/api/admin/staff", adminStaffRoutes);
-app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin", adminUserRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

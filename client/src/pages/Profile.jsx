@@ -3,11 +3,26 @@ import API from "../services/api";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import { toast } from "react-toastify";
+import { Camera } from "lucide-react";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [projects, setProjects] = useState([]);
   const [editing, setEditing] = useState(false);
+
+  // Profile pic states
+  const [profilePic, setProfilePic] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  // Add project states
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [projectForm, setProjectForm] = useState({
+    title: "",
+    description: "",
+    repoLink: "",
+    files: [],
+  });
 
   const [formData, setFormData] = useState({
     department: "",
@@ -17,11 +32,13 @@ const Profile = () => {
     skills: "",
   });
 
-  // Fetch profile
+  /* ================= FETCH PROFILE ================= */
+
   const fetchProfile = async () => {
     try {
       const res = await API.get("/users/me");
       setUser(res.data);
+      setPreview(res.data.profilePic || null);
 
       setFormData({
         department: res.data.department || "",
@@ -31,21 +48,18 @@ const Profile = () => {
         skills: (res.data.skills || []).join(", "),
       });
     } catch {
-      toast.error("Failed to load profile", {
-        autoClose: 1500,
-      });
+      toast.error("Failed to load profile");
     }
   };
 
-  // Fetch projects
+  /* ================= FETCH PROJECTS ================= */
+
   const fetchMyProjects = async () => {
     try {
       const res = await API.get("/projects/my");
       setProjects(res.data);
     } catch {
-      toast.error("Failed to load projects", {
-        autoClose: 1500,
-      });
+      toast.error("Failed to load projects");
     }
   };
 
@@ -54,91 +68,157 @@ const Profile = () => {
     fetchMyProjects();
   }, []);
 
-  // Update profile
+  /* ================= UPDATE PROFILE ================= */
+
   const handleUpdate = async (e) => {
     e.preventDefault();
+
     try {
-      await API.put("/users/me", {
-        ...formData,
-        skills: formData.skills.split(",").map((s) => s.trim()),
+      const data = new FormData();
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "skills") {
+          data.append(
+            key,
+            JSON.stringify(value.split(",").map((s) => s.trim()))
+          );
+        } else {
+          data.append(key, value);
+        }
       });
-      toast.success("Profile updated", {
-        autoClose: 1500,
-      });
+
+      if (profilePic) {
+        data.append("profilePic", profilePic);
+      }
+
+      await API.put("/users/me", data);
+
+      toast.success("Profile updated");
       setEditing(false);
       fetchProfile();
     } catch {
-      toast.error("Update failed", {
-        autoClose: 1500,
-      });
+      toast.error("Update failed");
+    }
+  };
+
+  /* ================= CREATE PROJECT ================= */
+
+  const handleCreateProject = async () => {
+    if (!projectForm.title || !projectForm.description) {
+      return toast.error("Title and description required");
+    }
+
+    const data = new FormData();
+    data.append("title", projectForm.title);
+    data.append("description", projectForm.description);
+    data.append("repoLink", projectForm.repoLink);
+
+    Array.from(projectForm.files).forEach((file) => {
+      data.append("media", file);
+    });
+
+    try {
+      setUploading(true);
+      await API.post("/projects", data);
+      toast.success("Project added");
+      setShowProjectModal(false);
+      setProjectForm({ title: "", description: "", repoLink: "", files: [] });
+      fetchMyProjects();
+    } catch {
+      toast.error("Project upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0d1117] transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0d1117]">
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-6 pb-12 pt-28">
-        {/* PROFILE HEADER */}
+        {/* ================= PROFILE HEADER ================= */}
         {user && (
-          <div className="relative mb-14 bg-white dark:bg-[#161b22] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-            {/* Header Gradient */}
+          <div className="relative mb-14 bg-white dark:bg-[#161b22] rounded-3xl shadow-xl overflow-hidden">
             <div className="h-36 bg-gradient-to-r from-blue-600 to-indigo-600" />
 
             <div className="px-8 pb-10">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 mb-8">
-                {/* Avatar */}
-                <div className="w-32 h-32 rounded-2xl bg-white dark:bg-[#0d1117] p-2 shadow-lg">
-                  <div className="w-full h-full rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-5xl font-black text-blue-600">
-                    {user.name.charAt(0)}
-                  </div>
-                </div>
+              <div className="flex flex-col md:flex-row items-center gap-6 mt-6 mb-8">
+                {/* PROFILE PIC */}
+<div className="relative -mt-20 md:-mt-24">
+  <div className="w-32 h-32 rounded-2xl bg-white dark:bg-[#0d1117] p-2 shadow-lg">
+    <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
+      {preview ? (
+        <img
+          src={preview}
+          alt="profile"
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span className="text-5xl font-black text-blue-600">
+          {user.name.charAt(0)}
+        </span>
+      )}
+    </div>
+  </div>
 
-                {/* User Info */}
+  {/* CAMERA ICON */}
+  <label
+    htmlFor="profilePic"
+    className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 p-2 rounded-full cursor-pointer shadow-lg transition"
+  >
+    <Camera className="w-4 h-4 text-white" />
+  </label>
+
+  <input
+    id="profilePic"
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setProfilePic(file);
+        setPreview(URL.createObjectURL(file));
+      }
+    }}
+  />
+</div>
+
+
+                {/* INFO */}
                 <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl font-black text-slate-900 dark:text-white">
-                    {user.name}
-                  </h1>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">
-                    {user.email}
-                  </p>
+                  <h1 className="text-3xl font-black">{user.name}</h1>
+                  <p className="text-slate-500">{user.email}</p>
                 </div>
 
-                {/* Edit Button */}
                 <button
                   onClick={() => setEditing(!editing)}
-                  className="px-6 py-2.5 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-600 hover:text-white transition-all"
+                  className="px-6 py-2.5 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-600 hover:text-white"
                 >
                   {editing ? "Cancel" : "Edit Profile"}
                 </button>
               </div>
 
-              {/* INFO GRID */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <InfoItem label="Department" value={user.department || "—"} />
                 <InfoItem label="Year" value={user.year || "—"} />
                 <InfoItem label="Roll Number" value={user.rollNumber || "—"} />
               </div>
 
-              {/* BIO */}
               <div className="mt-8">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-2">
+                <h3 className="text-sm font-bold uppercase text-slate-400 mb-2">
                   About Me
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {user.bio || "No bio added yet."}
-                </p>
+                <p className="text-slate-600">{user.bio || "No bio added yet."}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* EDIT PROFILE */}
+        {/* ================= EDIT PROFILE ================= */}
         {editing && (
-          <div className="mb-14 bg-white dark:bg-[#161b22] rounded-3xl p-8 shadow-2xl border border-blue-500/20">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">
-              Update Profile
-            </h2>
+          <div className="mb-14 bg-white dark:bg-[#161b22] rounded-3xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-black mb-6">Update Profile</h2>
 
             <form
               onSubmit={handleUpdate}
@@ -166,7 +246,7 @@ const Profile = () => {
                 }
               />
               <Input
-                placeholder="Skills (React, Node)"
+                placeholder="Skills"
                 value={formData.skills}
                 onChange={(e) =>
                   setFormData({ ...formData, skills: e.target.value })
@@ -179,19 +259,11 @@ const Profile = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, bio: e.target.value })
                 }
-                className="
-    md:col-span-2 w-full p-4 rounded-xl
-    border border-slate-200 dark:border-slate-800
-    bg-slate-50 dark:bg-[#0d1117]
-    text-slate-900 dark:text-white
-    placeholder:text-slate-400 dark:placeholder:text-slate-500
-    focus:ring-2 focus:ring-blue-500
-    outline-none resize-none
-  "
+                className="md:col-span-2 input"
               />
 
               <div className="md:col-span-2">
-                <button className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg">
+                <button className="px-10 py-4 bg-blue-600 text-white font-bold rounded-xl">
                   Save Changes
                 </button>
               </div>
@@ -199,22 +271,21 @@ const Profile = () => {
           </div>
         )}
 
-        {/* PROJECTS */}
+        {/* ================= PROJECTS ================= */}
         <section>
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white">
-              My Projects
-            </h2>
-            <span className="px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold text-sm">
-              {projects.length}
-            </span>
+            <h2 className="text-3xl font-black">My Projects</h2>
+            <button
+              onClick={() => setShowProjectModal(true)}
+              className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl"
+            >
+              + Add Project
+            </button>
           </div>
 
           {projects.length === 0 ? (
-            <div className="py-20 text-center bg-white dark:bg-[#161b22] rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-              <p className="text-slate-500">
-                No projects yet. Start uploading your work!
-              </p>
+            <div className="py-20 text-center bg-white rounded-3xl border border-dashed">
+              No projects yet.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -229,24 +300,78 @@ const Profile = () => {
           )}
         </section>
       </main>
+
+      {/* ================= ADD PROJECT MODAL ================= */}
+      {showProjectModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#161b22] p-6 rounded-xl w-full max-w-lg">
+            <h2 className="text-xl font-bold mb-4">Add Project</h2>
+
+            <input
+              className="input mb-3"
+              placeholder="Project Title"
+              value={projectForm.title}
+              onChange={(e) =>
+                setProjectForm({ ...projectForm, title: e.target.value })
+              }
+            />
+            <textarea
+              className="input mb-3 h-28"
+              placeholder="Description"
+              value={projectForm.description}
+              onChange={(e) =>
+                setProjectForm({
+                  ...projectForm,
+                  description: e.target.value,
+                })
+              }
+            />
+            <input
+              className="input mb-3"
+              placeholder="Repository Link"
+              value={projectForm.repoLink}
+              onChange={(e) =>
+                setProjectForm({ ...projectForm, repoLink: e.target.value })
+              }
+            />
+            <input
+              type="file"
+              multiple
+              onChange={(e) =>
+                setProjectForm({ ...projectForm, files: e.target.files })
+              }
+            />
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={() => setShowProjectModal(false)}
+                className="border px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={uploading}
+                onClick={handleCreateProject}
+                className="bg-green-600 px-4 py-2 rounded font-bold"
+              >
+                {uploading ? "Uploading..." : "Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+/* ================= REUSABLE ================= */
 
 const Input = ({ placeholder, value, onChange }) => (
   <input
     placeholder={placeholder}
     value={value}
     onChange={onChange}
-    className="
-  w-full p-4 rounded-xl
-  border border-slate-200 dark:border-slate-800
-  bg-slate-50 dark:bg-[#0d1117]
-  text-slate-900 dark:text-white
-  placeholder:text-slate-400 dark:placeholder:text-slate-500
-  focus:ring-2 focus:ring-blue-500
-  outline-none
-"
+    className="w-full p-4 rounded-xl border bg-slate-50 dark:bg-[#0d1117]"
   />
 );
 
@@ -255,7 +380,7 @@ const InfoItem = ({ label, value }) => (
     <p className="text-sm uppercase tracking-wider text-slate-400 mb-1">
       {label}
     </p>
-    <p className="text-lg font-bold text-slate-900 dark:text-white">{value}</p>
+    <p className="text-lg font-bold">{value}</p>
   </div>
 );
 

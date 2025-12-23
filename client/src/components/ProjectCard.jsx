@@ -1,70 +1,79 @@
-import { Heart } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../services/api";
+import { toast } from "react-toastify";
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, refresh }) => {
+  const navigate = useNavigate();
+
+  // Local like state
+  const [likesCount, setLikesCount] = useState(project.likes.length);
+  const [liked, setLiked] = useState(false);
+
+  // ❤️ Like handler
+  const handleLike = async (e) => {
+    e.stopPropagation(); // ⛔ prevent navigation
+
+    if (liked) return; // no unlike
+
+    try {
+      await API.post(`/projects/${project._id}/like`);
+      setLikesCount((prev) => prev + 1);
+      setLiked(true);
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Like failed"
+      );
+    }
+  };
+
+  // 🗑 Delete handler
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+
+    if (!window.confirm("Delete this project?")) return;
+
+    try {
+      await API.delete(`/projects/${project._id}`);
+      toast.success("Project deleted");
+      refresh && refresh();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
   return (
     <div
-      className="
-        bg-white dark:bg-[#161b22]
-        border border-slate-200 dark:border-slate-800
-        rounded-2xl p-6
-        shadow-sm dark:shadow-none
-        hover:shadow-xl dark:hover:shadow-blue-900/10
-        transition-all duration-300
-      "
+      onClick={() => navigate(`/projects/${project._id}`)}
+      className="cursor-pointer bg-white dark:bg-[#161b22] rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-5 hover:scale-[1.02] transition"
     >
-      {/* Title */}
-      <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+      <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-white">
         {project.title}
-      </h2>
+      </h3>
 
-      {/* Author */}
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-        By {project.owner?.name || "Unknown"}
-      </p>
-
-      {/* Description */}
-      <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 line-clamp-3">
+      <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3">
         {project.description}
       </p>
 
-      {/* Tech Stack */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {project.techStack?.map((tech, idx) => (
-          <span
-            key={idx}
-            className="
-              px-3 py-1 rounded-full text-xs font-semibold
-              bg-blue-100 text-blue-700
-              dark:bg-blue-900/30 dark:text-blue-400
-            "
-          >
-            {tech}
-          </span>
-        ))}
-      </div>
+      <div className="flex items-center justify-between mt-4">
+        {/* ❤️ LIKE */}
+        <button
+          onClick={handleLike}
+          className={`font-semibold ${
+            liked ? "text-red-600" : "text-red-500"
+          }`}
+        >
+          ❤️ {likesCount}
+        </button>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        {/* Likes */}
-        <div className="flex items-center gap-1 text-pink-600 dark:text-pink-400 font-bold">
-          <Heart size={16} fill="currentColor" />
-          <span>{project.likes?.length || 0}</span>
-        </div>
-
-        {/* Repo Link */}
-        {project.repoUrl && (
-          <a
-            href={project.repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              text-blue-600 dark:text-blue-400
-              font-bold text-sm
-              hover:underline
-            "
+        {/* 🗑 DELETE (only in profile) */}
+        {refresh && (
+          <button
+            onClick={handleDelete}
+            className="text-sm text-red-600 font-bold hover:text-red-700"
           >
-            View Repo →
-          </a>
+            Delete
+          </button>
         )}
       </div>
     </div>
