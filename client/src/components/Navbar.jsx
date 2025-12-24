@@ -159,7 +159,12 @@ const Navbar = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-bold"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full 
+             bg-red-50 dark:bg-red-500/10 
+             text-red-600 dark:text-red-400 font-bold
+             transition-all duration-200 ease-in-out
+             hover:bg-red-100 dark:hover:bg-red-500/20 
+             hover:scale-[1.02] active:scale-95"
                 >
                   <LogOut size={16} /> Logout
                 </button>
@@ -282,9 +287,27 @@ const Navbar = () => {
                   setOpen(false);
                   handleLogout();
                 }}
-                className="w-full flex items-center justify-center gap-3 p-5 rounded-3xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-black border border-red-100 dark:border-red-500/10"
+                className="
+    w-full flex items-center justify-center gap-3 p-5 rounded-3xl
+    bg-red-50 dark:bg-red-500/10
+    text-red-600 dark:text-red-400
+    font-black
+    border border-red-100 dark:border-red-500/10
+
+    transition-all duration-200 ease-out
+    hover:bg-red-100 dark:hover:bg-red-500/20
+    hover:text-red-700 dark:hover:text-red-300
+    hover:-translate-y-0.5
+    hover:shadow-[0_8px_24px_rgba(239,68,68,0.25)]
+    active:translate-y-0
+    active:shadow-[0_4px_12px_rgba(239,68,68,0.2)]
+  "
               >
-                <LogOut size={20} /> Sign Out
+                <LogOut
+                  size={20}
+                  className="transition-transform duration-200 group-hover:rotate-6"
+                />
+                Sign Out
               </button>
             </div>
           )}

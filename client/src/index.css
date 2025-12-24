@@ -3,7 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  /* ================= GLOBAL ADAPTIVE SCROLLBAR ================= */
+  /* 1. GLOBAL COLORS & TEXT VISIBILITY */
+  /* This ensures all text is visible by default in both modes */
+  body {
+    @apply bg-slate-50 text-slate-900 transition-colors duration-500;
+    @apply dark:bg-[#05070a] dark:text-slate-100;
+  }
+
+  /* 2. ADAPTIVE SCROLLBAR */
   :root {
     scrollbar-color: #cbd5e1 #f1f5f9;
     scrollbar-width: thin;
@@ -18,30 +25,23 @@
     height: 10px;
   }
 
-  /* Track */
   ::-webkit-scrollbar-track {
-    @apply bg-[#f1f5f9] dark:bg-[#05070a];
+    @apply bg-slate-100 dark:bg-[#05070a];
   }
 
-  /* Thumb */
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 dark:bg-slate-800 rounded-full border-2 border-solid;
-    border-color: #f1f5f9; /* Matches light track */
+    @apply bg-slate-300 dark:bg-slate-800 rounded-full border-2;
+    border-color: #f1f5f9;
     background-clip: content-box;
   }
 
   .dark ::-webkit-scrollbar-thumb {
-    border-color: #05070a; /* Matches dark track */
+    border-color: #05070a;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400 dark:bg-slate-700;
-  }
-
-  /* ================= TEXT STYLES (DOUBLE COLOR & GLOW) ================= */
+  /* 3. TEXT GLOW GRADIENT */
   .text-glow-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-cyan-400 to-indigo-500;
-    /* This creates the glow effect using drop-shadow (cleaner than text-shadow for gradients) */
     filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
     background-size: 200% auto;
     animation: textShine 4s linear infinite;
@@ -53,82 +53,90 @@
     }
   }
 
-  /* ================= AUTOFILL FIXES ================= */
+  /* 4. AUTOFILL FIX - REFINED */
+
+  /* Default / Dark Mode (Mobile-first or Dark-first) */
   input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
   textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
   select:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 1000px #0d1117 inset !important;
+    /* Using a very large inset shadow to cover the browser default background */
+    -webkit-box-shadow: 0 0 0px 1000px #0d1117 inset !important;
     -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s; /* Prevents the bg from flickering back */
     caret-color: #ffffff !important;
-    transition: background-color 9999s ease-in-out 0s;
   }
 
+  /* Light Mode Override */
   html:not(.dark) input:-webkit-autofill,
+  html:not(.dark) input:-webkit-autofill:hover,
+  html:not(.dark) input:-webkit-autofill:focus,
   html:not(.dark) textarea:-webkit-autofill,
+  html:not(.dark) textarea:-webkit-autofill:hover,
+  html:not(.dark) textarea:-webkit-autofill:focus,
   html:not(.dark) select:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
+    -webkit-box-shadow: 0 0 0px 1000px #f8fafc inset !important;
     -webkit-text-fill-color: #0f172a !important;
     caret-color: #0f172a !important;
-  }
-
-  /* ================= INPUT SPINNERS & DROPDOWNS ================= */
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    @apply opacity-100 h-6 cursor-pointer mr-1;
-    filter: grayscale(1) brightness(1.5);
-  }
-
-  .dark input[type="number"]::-webkit-inner-spin-button {
-    filter: invert(1) brightness(2);
-  }
-
-  /* Native Dropdown Fix */
-  .dark select option {
-    background-color: #0d1117 !important;
-    color: #ffffff !important;
-  }
-
-  .dark select:focus option:checked {
-    background-color: #1e293b !important;
-    color: #818cf8 !important;
   }
 }
 
 @layer components {
-  /* ================= SHARED INPUT UTILITY ================= */
+  /* 5. SHARED INPUT */
   .input {
-    @apply w-full p-4 rounded-xl border outline-none transition duration-200;
+    @apply w-full p-4 rounded-xl border outline-none;
     @apply border-slate-200 dark:border-slate-800;
-    @apply bg-slate-50 dark:bg-[#0d1117];
+    @apply bg-white dark:bg-[#0d1117];
     @apply text-slate-900 dark:text-white;
     @apply placeholder:text-slate-400 dark:placeholder:text-slate-500;
     @apply focus:ring-2 focus:ring-indigo-500/50;
+    transition: all 0.2s ease-in-out; /* Normal speed for interaction */
   }
 }
 
-/* ================= THEME TRANSITION FIX (NO GHOSTING) ================= */
+/* ========================================================= */
+/* =============== LIQUID THEME TRANSITION ================= */
+/* ========================================================= */
 
-/* 1. Universal Slow Transition for Colors ONLY */
-.theme-liquid-transition *,
-.theme-liquid-transition *:before,
-.theme-liquid-transition *:after {
-  /* box-shadow is EXCLUDED here to stop the extra shadow trail */
+/* We use :not(:hover) so that when you mouse over an item, 
+  it uses the normal fast transition instead of the slow 1.2s theme speed.
+*/
+.theme-liquid-transition *:not(:hover),
+.theme-liquid-transition *::before,
+.theme-liquid-transition *::after {
   transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    text-decoration-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    fill 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    stroke 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* 2. Targeted Fast Transition for Shadows */
-.theme-liquid-transition .shadow-2xl,
-.theme-liquid-transition .shadow-sm,
-.theme-liquid-transition [class*="shadow-"] {
-  transition: box-shadow 0.3s ease-in-out !important;
+/* Fix: Shadows must always be fast to prevent "ghosting" or "extra shadow" effects */
+.theme-liquid-transition [class*="shadow-"],
+.theme-liquid-transition button,
+.theme-liquid-transition a {
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out !important;
 }
 
-/* Heart Pop Animation */
+/* ========================================================= */
+/* ================= ANIMATIONS ============================ */
+/* ========================================================= */
+
+@keyframes iconSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon-spin-hover:hover {
+  animation: iconSpin 0.8s linear infinite;
+}
+
 @keyframes heartPop {
   0% {
     transform: scale(0.6);
@@ -141,4 +149,8 @@
   100% {
     transform: scale(1);
   }
+}
+
+.heart-pop {
+  animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
