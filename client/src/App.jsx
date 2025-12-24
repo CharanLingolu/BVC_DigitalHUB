@@ -27,6 +27,8 @@ import AdminEvents from "./admin/pages/Events";
 import AdminJobs from "./admin/pages/Jobs";
 import UserDetails from "./admin/pages/UserDetails";
 import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
+import EventDetails from "./pages/EventDetails";
+import JobApply from "./pages/JobApply";
 
 function App() {
   const [dark, setDark] = useState(false);
@@ -54,6 +56,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/events/:id" element={<EventDetails />} />
+        <Route path="/jobs/:id/apply" element={<JobApply />} />
 
         <Route
           path="/admin/dashboard"
