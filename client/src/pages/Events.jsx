@@ -132,12 +132,14 @@ const EventCard = ({ event }) => {
     <div className="group relative bg-white dark:bg-[#181a25] rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-lg shadow-slate-200/50 dark:shadow-none hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] flex flex-col h-full">
       {/* IMAGE SECTION */}
       <div className="relative h-64 overflow-hidden">
-        {/* Date Sticker */}
-        <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center w-16 h-16 bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-2xl shadow-xl">
-          <span className="text-[10px] font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">
+        {/* ✅ FIXED DATE STICKER: Solid background and high contrast text */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-white/10 transition-transform group-hover:scale-105">
+          <span className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">
             {month}
           </span>
-          <span className="text-2xl font-black text-white">{day}</span>
+          <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">
+            {day}
+          </span>
         </div>
 
         {/* Image Overlay Gradient: Darker at bottom to ensure text readability */}

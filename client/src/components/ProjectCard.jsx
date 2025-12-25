@@ -104,17 +104,18 @@ const ProjectCard = ({
       <div
         onClick={() => navigate(`/projects/${project?._id}`)}
         className="group relative cursor-pointer overflow-hidden rounded-[2.5rem] 
-             bg-white/90 dark:bg-[#0a0a0f]/95 backdrop-blur-3xl 
-             border border-slate-200 dark:border-white/10 
-             shadow-xl flex flex-col h-full min-h-[280px]
-             transition-all duration-500 ease-out
-             hover:-translate-y-2 hover:-rotate-1 hover:scale-[1.01]
-             hover:shadow-[10px_20px_50px_-20px_rgba(99,102,241,0.3)]"
+              bg-white/90 dark:bg-[#0a0a0f]/95 backdrop-blur-3xl 
+              border border-slate-200 dark:border-white/10 
+              shadow-xl flex flex-col h-full min-h-[280px]
+              transition-all duration-500 ease-out
+              hover:-translate-y-2 hover:-rotate-1 hover:scale-[1.01]
+              hover:shadow-[10px_20px_50px_-20px_rgba(99,102,241,0.3)]"
       >
         <div className="p-8 flex flex-col h-full relative z-10">
           {!isOwner && (
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#16161a] border border-slate-200 dark:border-white/10 flex items-center justify-center">
+              {/* ✅ FIXED: Added shrink-0 to prevent the image container from collapsing */}
+              <div className="w-12 h-12 rounded-2xl shrink-0 overflow-hidden bg-slate-100 dark:bg-[#16161a] border border-slate-200 dark:border-white/10 flex items-center justify-center">
                 {project.user?.profilePic ? (
                   <img
                     src={project.user.profilePic}
@@ -125,7 +126,8 @@ const ProjectCard = ({
                   <User size={20} className="text-slate-400" />
                 )}
               </div>
-              <div>
+              {/* ✅ FIXED: Added min-w-0 to allow the text to truncate properly without pushing the image */}
+              <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900 dark:text-white text-base truncate mb-1 leading-none">
                   {project.user?.name || "Unknown"}
                 </p>
@@ -148,7 +150,6 @@ const ProjectCard = ({
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                // ✅ FIXED: Using group/heart to coordinate hover colors for all children
                 className={`flex items-center gap-2.5 transition-all duration-300 active:scale-90 group/heart 
                 ${
                   isLiked
@@ -158,7 +159,6 @@ const ProjectCard = ({
               >
                 <Heart
                   size={26}
-                  // ✅ FIXED: Added group-hover/heart:stroke-red-500 for consistent icon color on hover
                   className={`transition-all duration-500 group-hover/heart:-rotate-12 group-hover/heart:scale-110
                   ${
                     isLiked
@@ -166,7 +166,6 @@ const ProjectCard = ({
                       : "fill-none stroke-current group-hover/heart:stroke-red-500"
                   }`}
                 />
-                {/* ✅ FIXED: Added group-hover/heart:text-red-500 to ensure the number changes color with the heart */}
                 <span
                   className={`font-black text-lg transition-colors duration-300 ${
                     !isLiked && "group-hover/heart:text-red-500"
@@ -200,7 +199,7 @@ const ProjectCard = ({
         </div>
       </div>
 
-      {/* ✅ FANCY MODERN DELETE MODAL */}
+      {/* Modern Delete Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div

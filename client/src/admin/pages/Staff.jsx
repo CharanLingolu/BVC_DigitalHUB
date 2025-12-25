@@ -581,6 +581,8 @@ const Input = ({ label, ...props }) => (
   </div>
 );
 
+/* ================= UPDATED VIEW MODAL ================= */
+
 const StaffDetailsModal = ({ staff, onClose }) => {
   const subjects = normalizeSubjects(staff.subjects);
 
@@ -590,50 +592,52 @@ const StaffDetailsModal = ({ staff, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl bg-white dark:bg-[#0d1117] rounded-[3rem] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col md:flex-row shadow-3xl h-[85vh] max-h-[700px] transition-colors duration-300"
+        className="relative w-full max-w-5xl bg-white dark:bg-[#0d1117] rounded-[2.5rem] md:rounded-[3rem] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col md:flex-row shadow-3xl h-[90vh] md:h-[85vh] max-h-[800px] transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left Panel: Profile & Branding */}
-        <div className="w-full md:w-2/5 bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 dark:via-violet-800 dark:to-[#0d1117] p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
+        {/* Left Panel: Profile & Branding (Stacks on top for mobile) */}
+        <div className="w-full md:w-2/5 shrink-0 bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 dark:via-violet-800 dark:to-[#0d1117] p-6 md:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
+          {/* Decorative shapes - Hidden on very small screens for clarity */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none hidden sm:block">
             <div className="absolute top-[-5%] left-[-5%] w-64 h-64 border-[30px] border-white rounded-full" />
             <div className="absolute bottom-[-5%] right-[-5%] w-32 h-32 border-[15px] border-white rounded-full" />
           </div>
 
           <div className="relative group">
-            <div className="w-52 h-52 rounded-[2.5rem] border-4 border-white/30 p-1 shadow-2xl overflow-hidden bg-white/10 backdrop-blur-sm transition-transform duration-500 group-hover:scale-105">
+            <div className="w-36 h-36 md:w-52 md:h-52 rounded-[2rem] md:rounded-[2.5rem] border-4 border-white/30 p-1 shadow-2xl overflow-hidden bg-white/10 backdrop-blur-sm transition-transform duration-500">
               {staff.photo ? (
                 <img
                   src={staff.photo}
-                  className="w-full h-full object-cover rounded-[2rem]"
+                  className="w-full h-full object-cover rounded-[1.8rem] md:rounded-[2rem]"
                   alt={staff.name}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-7xl font-black text-white/50">
+                <div className="w-full h-full flex items-center justify-center text-5xl md:text-7xl font-black text-white/50">
                   {staff.name[0]}
                 </div>
               )}
             </div>
-            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white px-3 py-1 rounded-lg font-black text-[10px] shadow-lg border-2 border-indigo-700 dark:border-[#0d1117]">
+            <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white px-2 md:px-3 py-1 rounded-lg font-black text-[8px] md:text-[10px] shadow-lg border-2 border-indigo-700 dark:border-[#0d1117]">
               ONLINE
             </div>
           </div>
 
-          <div className="mt-8 z-10">
-            <h2 className="text-3xl font-black text-white leading-tight drop-shadow-md">
+          <div className="mt-6 md:mt-8 z-10">
+            <h2 className="text-xl md:text-3xl font-black text-white leading-tight drop-shadow-md">
               {staff.name}
             </h2>
-            <div className="mt-2 inline-block px-4 py-1 rounded-full bg-white/20 border border-white/30 text-white font-bold uppercase tracking-widest text-[10px]">
+            <div className="mt-2 inline-block px-3 md:px-4 py-1 rounded-full bg-white/20 border border-white/30 text-white font-bold uppercase tracking-widest text-[8px] md:text-[10px]">
               {staff.position}
             </div>
           </div>
         </div>
 
-        {/* Right Panel: Content Grid */}
-        <div className="flex-1 p-10 relative flex flex-col justify-between overflow-hidden">
+        {/* Right Panel: Content Grid (Scrollable internally) */}
+        <div className="flex-1 p-6 md:p-10 relative flex flex-col overflow-y-auto custom-scrollbar">
+          {/* Close Button - Stays fixed in the corner of the content panel */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 transition-all border border-slate-200 dark:border-white/10"
+            className="absolute top-4 right-4 md:top-6 md:right-6 p-2 md:p-2.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 transition-all border border-slate-200 dark:border-white/10 z-50"
           >
             <X size={20} />
           </button>
@@ -646,58 +650,72 @@ const StaffDetailsModal = ({ staff, onClose }) => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-indigo-500/50 transition-all">
-                <GraduationCap className="w-5 h-5 text-indigo-500 mb-2" />
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                  Academic
-                </h4>
-                <p className="text-base font-bold text-slate-900 dark:text-white">
-                  {staff.qualification}
-                </p>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-indigo-500/50 transition-all flex md:flex-col items-center md:items-start gap-4 md:gap-0">
+                <GraduationCap className="w-5 h-5 text-indigo-500 md:mb-2 shrink-0" />
+                <div>
+                  <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
+                    Academic
+                  </h4>
+                  <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white">
+                    {staff.qualification}
+                  </p>
+                </div>
               </div>
-              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-rose-500/50 transition-all">
-                <Briefcase className="w-5 h-5 text-rose-500 mb-2" />
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                  Experience
-                </h4>
-                <p className="text-base font-bold text-slate-900 dark:text-white">
-                  {staff.experience} Years
-                </p>
+              <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-rose-500/50 transition-all flex md:flex-col items-center md:items-start gap-4 md:gap-0">
+                <Briefcase className="w-5 h-5 text-rose-500 md:mb-2 shrink-0" />
+                <div>
+                  <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
+                    Experience
+                  </h4>
+                  <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white">
+                    {staff.experience} Years
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
-              <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-4">
+            {/* Subject Expertise */}
+            <div className="p-5 md:p-6 rounded-2xl md:rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+              <h4 className="text-[8px] md:text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-3 md:mb-4">
                 Subject Expertise
               </h4>
-              <div className="flex flex-wrap gap-2">
-                {subjects.map((s, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-300 rounded-lg font-bold text-[11px]"
-                  >
-                    {s}
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
+                {subjects.length > 0 ? (
+                  subjects.map((s, i) => (
+                    <span
+                      key={i}
+                      className="px-2.5 py-1 md:px-3 md:py-1.5 bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-300 rounded-lg font-bold text-[10px] md:text-[11px]"
+                    >
+                      {s}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-400 italic">
+                    No subjects listed
                   </span>
-                ))}
+                )}
               </div>
             </div>
 
-            <div className="px-2">
-              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">
+            {/* Biography */}
+            <div className="px-1 md:px-2 pb-4">
+              <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">
                 Professional Biography
               </h4>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm line-clamp-3">
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-xs md:text-sm">
                 {staff.bio ||
                   "Academic profile details are currently being updated by the administration."}
               </p>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+          {/* Footer Info */}
+          <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500" />
+              <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">
                 {staff.department} Department
               </span>
             </div>
@@ -707,5 +725,4 @@ const StaffDetailsModal = ({ staff, onClose }) => {
     </div>
   );
 };
-
 export default Staff;

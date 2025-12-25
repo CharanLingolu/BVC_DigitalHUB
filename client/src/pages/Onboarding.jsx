@@ -79,7 +79,7 @@ const Onboarding = () => {
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-[120px]" />
       </div>
 
-      <div className="h-20" />
+      <div className="h-28" />
 
       <main className="relative z-10 max-w-4xl mx-auto px-6 pb-24 animate-fade-in-up">
         {/* HEADER */}
