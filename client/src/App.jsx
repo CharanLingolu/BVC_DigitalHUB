@@ -1,5 +1,5 @@
 import {
-  BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   Navigate,
@@ -106,7 +106,7 @@ function App() {
   }, [dark]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ScrollToTop />
 
       <div
@@ -334,7 +334,7 @@ function App() {
           <Footer />
         </Suspense>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
