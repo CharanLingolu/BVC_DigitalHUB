@@ -22,7 +22,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://bvcdigitalhub.vercel.app",
+  "https://bvc-digital-hub.vercel.app",
 ];
 
 app.use(
