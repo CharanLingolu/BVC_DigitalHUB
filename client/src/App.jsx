@@ -26,7 +26,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Staff = lazy(() => import("./pages/Staff"));
 const Events = lazy(() => import("./pages/Events"));
 const Jobs = lazy(() => import("./pages/Jobs"));
-const JobDetails = lazy(() => import("./pages/JobDetails")); // ✅ Added JobDetails
+const JobDetails = lazy(() => import("./pages/JobDetails"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const EditProject = lazy(() => import("./pages/EditProject"));
@@ -309,7 +309,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* ✅ ADDED JOB DETAILS ROUTE */}
               <Route
                 path="/jobs/:id"
                 element={
@@ -327,7 +326,6 @@ function App() {
                 }
               />
 
-              {/* Fallback for undefined routes to prevent white screen */}
               <Route path="*" element={<RootRedirector />} />
             </Routes>
           </div>
