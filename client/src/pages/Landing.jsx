@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom"; // ✅ Added import
+import { useNavigate, Link } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 
 const Landing = () => {
@@ -53,23 +54,25 @@ const Landing = () => {
                 accelerate your career path with next-gen tools.
               </p>
 
-              {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <a
-                  href="/signup"
+                {/* Get Started */}
+                <Link
+                  to="/signup"
                   className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
                 >
                   Get Started
                   <span className="group-hover:translate-x-1 transition-transform">
                     →
                   </span>
-                </a>
-                <a
-                  href="/login"
+                </Link>
+
+                {/* Log In */}
+                <Link
+                  to="/login"
                   className="px-8 py-4 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#1c2128] hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 shadow-sm flex items-center justify-center"
                 >
                   Log In
-                </a>
+                </Link>
               </div>
 
               {/* Stats */}
