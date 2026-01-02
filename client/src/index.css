@@ -3,10 +3,20 @@
 @tailwind utilities;
 
 @layer base {
+  /* 0. SMOOTH SCROLLING CORE FIX */
+  html {
+    scroll-behavior: smooth !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   /* 1. GLOBAL COLORS & TEXT VISIBILITY */
   body {
     @apply bg-slate-50 text-slate-900 transition-colors duration-500;
     @apply dark:bg-[#05070a] dark:text-slate-100;
+    /* Prevents layout jumping on load */
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
   /* 2. ADAPTIVE SCROLLBAR */
@@ -105,7 +115,8 @@
 /* =============== OPTIMIZED LIQUID TRANSITION ============== */
 /* ========================================================= */
 
-/* Instead of using (*), we target only high-level containers for the slow transition */
+/* We explicitly exclude 'transform' and 'scroll-behavior' from the 1.2s transition 
+   to ensure the browser never "lags" during a scroll action. */
 .theme-liquid-transition,
 .theme-liquid-transition main,
 .theme-liquid-transition section,
@@ -115,9 +126,11 @@
   transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  /* GPU Acceleration */
+  will-change: background-color, color;
 }
 
-/* Ensure common UI elements like buttons and icons ignore the slow transition */
+/* Common UI elements must stay fast (0.2s) for a premium feel */
 .theme-liquid-transition button,
 .theme-liquid-transition a,
 .theme-liquid-transition input,
