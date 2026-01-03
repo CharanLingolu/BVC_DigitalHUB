@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { sendEmail } from "../utils/sendEmail.js"; // ✅ CHANGED: Import the new Brevo utility
+import { sendEmail } from "../utils/sendEmail.js"; // ✅ Uses your enhanced Nodemailer utility
 
 /* ===============================
    HELPERS
@@ -26,7 +26,6 @@ export const signup = async (req, res) => {
     email = normalizeEmail(email);
 
     // 🔒 College email restriction
-    // (If you enabled the check in helper, this will block Gmail)
     // if (!email || !isCollegeEmail(email)) {
     //   return res.status(400).json({
     //     message: "Only @bvcgroup.in email addresses are allowed",
@@ -56,8 +55,8 @@ export const signup = async (req, res) => {
       isOnboarded: false,
     });
 
-    // ✅ CHANGED: Send OTP via Brevo API (Axios)
-    // We construct a simple HTML message for the OTP
+    // ✅ SEND OTP via Nodemailer
+    // Construct HTML message for the OTP
     const emailHtml = `
       <div style="font-family: sans-serif; padding: 20px;">
         <h2>Welcome to BVC DigitalHub!</h2>
@@ -67,10 +66,9 @@ export const signup = async (req, res) => {
       </div>
     `;
 
-    // We await the email. Even if it fails, our new utility won't crash the server.
-    // Check your Render logs if emails don't arrive.
+    // Send the email using the enhanced utility
     await sendEmail({
-      to: email,
+      to: email, // The enhanced code handles array or string, but string is fine here
       subject: "OTP Verification - BVC DigitalHub",
       html: emailHtml,
     });
