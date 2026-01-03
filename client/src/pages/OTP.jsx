@@ -13,20 +13,19 @@ const OTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ FIX 1: Extract all data passed from Signup (Name, Email, Password)
-  // We need these to create the user account in the final step.
+  // Extract data passed from Signup
   const { name, email, password } = location.state || {};
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false); // ✅ NEW: State for resend loading
 
   const handleVerify = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // ✅ FIX 2: Call '/signup' instead of '/verify-otp'
-      // This verifies the OTP AND creates the user AND returns the token.
+      // Verify and Signup together
       const res = await API.post("/auth/signup", {
         name,
         email,
@@ -36,13 +35,9 @@ const OTP = () => {
 
       toast.success(res.data.message);
 
-      // ✅ FIX 3: Store the token (Now it actually exists!)
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
-        // ➡️ Go to onboarding
         navigate("/onboarding");
-      } else {
-        throw new Error("Token missing in response");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Verification failed", {
@@ -53,7 +48,21 @@ const OTP = () => {
     }
   };
 
-  // Error State: Missing Data (Prevents direct access without Signup step)
+  // ✅ NEW: Handle Resend OTP Function
+  const handleResend = async () => {
+    if (resending) return; // Prevent double clicks
+    setResending(true);
+    try {
+      const res = await API.post("/auth/send-otp", { email });
+      toast.success(res.data.message || "OTP sent again!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // Error State: Missing Data
   if (!email || !password) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#05070a] p-6 font-sans">
@@ -80,15 +89,12 @@ const OTP = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#05070a] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/50 p-4 relative overflow-hidden transition-colors duration-500">
-      {/* ================= BACKGROUND EFFECTS ================= */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 dark:opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-[120px] animate-pulse-slow" />
       </div>
 
-      {/* ================= GLASS CARD ================= */}
       <div className="relative z-10 w-full max-w-md bg-white/70 dark:bg-[#161b22]/60 backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/50 dark:border-white/10 animate-fade-in-up overflow-hidden">
-        {/* Decorative Top Line */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60"></div>
 
         <div className="text-center mb-10">
@@ -122,7 +128,6 @@ const OTP = () => {
               className="w-full p-6 text-center text-4xl tracking-[0.5em] font-black rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0d1117]/50 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-700 hover:bg-white dark:hover:bg-[#0d1117]"
               style={{ fontFamily: "monospace" }}
             />
-            {/* Glow effect behind input */}
             <div className="absolute inset-0 rounded-3xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
           </div>
 
@@ -144,7 +149,6 @@ const OTP = () => {
                 </>
               )}
             </span>
-            {/* Shine Effect */}
             <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10"></div>
           </button>
         </form>
@@ -152,8 +156,19 @@ const OTP = () => {
         <div className="mt-8 text-center">
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
             Didn't receive the code?{" "}
-            <button className="text-indigo-600 dark:text-indigo-400 font-bold hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-4 ml-1">
-              <RefreshCw className="w-3 h-3" /> Resend
+            {/* ✅ FIXED: Added onClick and type="button" */}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending}
+              className="text-indigo-600 dark:text-indigo-400 font-bold hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-4 ml-1 disabled:opacity-50 disabled:cursor-wait"
+            >
+              {resending ? (
+                <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3" />
+              )}
+              {resending ? " Sending..." : " Resend"}
             </button>
           </p>
         </div>
