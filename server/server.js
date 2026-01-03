@@ -21,7 +21,7 @@ connectDB();
 const app = express();
 
 /* =======================
-   ✅ FIXED CORS (PRODUCTION SAFE)
+   ✅ FIXED CORS (EXPRESS 5 SAFE)
    ======================= */
 
 const allowedOrigins = [
@@ -35,17 +35,17 @@ app.use(
       // Allow requests without origin (Render health checks, curl, mobile apps)
       if (!origin) return callback(null, true);
 
-      // Allow exact matches
+      // Allow known origins
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // Allow all vercel preview & production subdomains
+      // Allow all Vercel subdomains (preview + prod)
       if (origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
-      // ✅ Do NOT block — prevents silent signup failure
+      // Do NOT block — prevents silent failures
       return callback(null, true);
     },
     credentials: true,
@@ -54,12 +54,12 @@ app.use(
   })
 );
 
-// ✅ IMPORTANT: Handle preflight requests
-app.options("*", cors());
+// ✅ EXPRESS 5 SAFE: handle preflight
+app.options(/.*/, cors());
 
 app.use(express.json());
 
-// ✅ Root Route (Render health check)
+// Root route (Render health check)
 app.get("/", (req, res) => {
   res.status(200).send("BVC Digital Hub API is running successfully!");
 });
