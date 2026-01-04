@@ -596,7 +596,7 @@ const GlassInput = ({ label, icon: Icon, ...props }) => (
       )}
       <input
         {...props}
-        className={`w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all ${
+        className={`w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all dark:[color-scheme:dark] ${
           Icon ? "pl-12" : ""
         }`}
       />

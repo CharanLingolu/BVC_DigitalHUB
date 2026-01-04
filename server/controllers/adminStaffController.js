@@ -33,10 +33,7 @@ export const addStaff = async (req, res) => {
             <p style="margin: 0;"><strong>Email:</strong> ${staff.email}</p>
             <p style="margin: 5px 0 0 0;"><strong>Password:</strong> ${password}</p>
           </div>
-          
-          <p style="font-size: 0.9em; color: #666;">
-            <em>Note: For security reasons, please change your password immediately after your first login.</em>
-          </p>
+        
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
           <p style="text-align: center; font-size: 0.8em; color: #999;">
             This is an automated message from BVC DigitalHub. Please do not reply to this email.

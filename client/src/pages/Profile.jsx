@@ -24,10 +24,47 @@ import {
   Zap,
 } from "lucide-react";
 
+// --- MODERN SKELETON LOADER ---
+const ProfileSkeleton = () => (
+  <div className="min-h-screen bg-slate-50 dark:bg-[#030407] pt-32 pb-20 px-4 transition-colors duration-300">
+    <div className="max-w-6xl mx-auto space-y-12">
+      {/* Header Skeleton */}
+      <div className="relative h-64 rounded-[2.8rem] bg-slate-200 dark:bg-[#0d1117] border border-slate-300 dark:border-white/5 overflow-hidden animate-pulse">
+        <div className="h-full w-full bg-gradient-to-r from-white/40 to-transparent dark:from-white/5" />
+      </div>
+
+      {/* Content Skeleton */}
+      <div className="px-6 md:px-14 -mt-32 relative z-10">
+        <div className="flex flex-col md:flex-row gap-10">
+          <div className="w-40 h-40 md:w-48 md:h-48 rounded-[3rem] bg-slate-300 dark:bg-[#161b22] border-4 border-slate-50 dark:border-[#030407] animate-pulse shrink-0" />
+          <div className="flex-1 pt-12 space-y-4">
+            <div className="h-10 w-64 bg-slate-300 dark:bg-white/10 rounded-xl animate-pulse" />
+            <div className="h-6 w-40 bg-slate-200 dark:bg-white/5 rounded-lg animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-64 rounded-[2.5rem] bg-slate-200 dark:bg-[#0d1117] border border-slate-300 dark:border-white/5 animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [projects, setProjects] = useState([]);
   const [editing, setEditing] = useState(false);
+
+  // ✅ Loading States
+  const [loading, setLoading] = useState(true); // Initial Page Load
+  const [isUpdating, setIsUpdating] = useState(false); // Update Profile Button
 
   // States for media and modals
   const [profilePic, setProfilePic] = useState(null);
@@ -61,7 +98,6 @@ const Profile = () => {
       setUser(res.data);
       setPreview(res.data.profilePic || null);
 
-      // Sync form data with server response so inputs are up-to-date
       setFormData({
         name: res.data.name || "",
         department: res.data.department || "",
@@ -74,6 +110,8 @@ const Profile = () => {
       });
     } catch {
       toast.error("Failed to load profile details.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,28 +129,25 @@ const Profile = () => {
     fetchMyProjects();
   }, []);
 
-  /* ================= 🛠️ UPDATE PROFILE (GLOSSY & FIXED) ================= */
+  /* ================= 🛠️ UPDATE PROFILE ================= */
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setIsUpdating(true); // ✅ Start loading spinner
 
     try {
       const data = new FormData();
 
-      // ✅ Explicitly append all fields to FormData
       data.append("name", formData.name);
       data.append("department", formData.department);
-      data.append("year", String(formData.year)); // This forces the update for "Batch"
+      data.append("year", String(formData.year));
       data.append("rollNumber", formData.rollNumber);
       data.append("bio", formData.bio);
-
-      // ✅ Send skills as a plain string for the backend to handle
       data.append("skills", formData.skills);
 
       if (profilePic) {
         data.append("profilePic", profilePic);
       }
 
-      // ✅ PUT Request
       await API.put("/users/me", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -121,11 +156,12 @@ const Profile = () => {
       setEditing(false);
       setProfilePic(null);
 
-      // ✅ CRITICAL: Re-fetch user from DB to update state immediately
       await fetchProfile();
     } catch (err) {
       console.error("AXIOS UPDATE ERROR:", err);
       toast.error("Update failed. Check connection.");
+    } finally {
+      setIsUpdating(false); // ✅ Stop loading spinner
     }
   };
 
@@ -175,6 +211,8 @@ const Profile = () => {
     }
   };
 
+  if (loading) return <ProfileSkeleton />;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#030407] text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden transition-colors duration-700">
       <Navbar />
@@ -217,7 +255,8 @@ const Profile = () => {
                           className="w-full h-full object-cover"
                           alt="Profile"
                         />
-                        <label className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all cursor-pointer">
+                        {/* ✅ FIX: Added rounded-[2.5rem] to this label to clip corners */}
+                        <label className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-[2.5rem] flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all cursor-pointer">
                           <Camera className="text-white w-10 h-10 mb-1" />
                           <span className="text-[10px] font-black text-white uppercase tracking-widest">
                             Update
@@ -252,6 +291,7 @@ const Profile = () => {
                       </div>
                       <button
                         onClick={() => setEditing(!editing)}
+                        disabled={isUpdating}
                         className={`group flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black transition-all border shadow-lg hover:-translate-y-1 ${
                           editing
                             ? "bg-rose-500 text-white border-rose-400"
@@ -381,9 +421,15 @@ const Profile = () => {
                         <div className="md:col-span-2 flex justify-end pt-4">
                           <button
                             type="submit"
-                            className="flex items-center gap-3 px-12 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.03] active:scale-95 transition-all"
+                            disabled={isUpdating}
+                            className="flex items-center gap-3 px-12 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
                           >
-                            <Save size={20} /> Update Profile
+                            {isUpdating ? (
+                              <Loader2 className="animate-spin" size={20} />
+                            ) : (
+                              <Save size={20} />
+                            )}
+                            {isUpdating ? "Updating..." : "Update Profile"}
                           </button>
                         </div>
                       </form>

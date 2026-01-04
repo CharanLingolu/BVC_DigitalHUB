@@ -9,7 +9,7 @@ import { useState, useEffect, Suspense, lazy } from "react";
 import { ToastContainer } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios"; // ✅ REQUIRED: Import axios to fix API calls
+import axios from "axios";
 
 // Components
 import Footer from "./components/Footer";
@@ -73,15 +73,41 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
 );
 
 /**
+ * ✅ PUBLIC ROUTE WRAPPER
+ * Prevents logged-in users from accessing Login/Signup pages again.
+ */
+const PublicRoute = ({ children }) => {
+  const isUser = localStorage.getItem("token");
+  const isStaff = localStorage.getItem("staffToken");
+  const isAdmin = localStorage.getItem("adminToken");
+
+  if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+  if (isUser || isStaff) return <Navigate to="/home" replace />;
+
+  return children;
+};
+
+/**
  * ✅ UNIVERSAL ROUTE (Allows Staff OR Student)
+ * Handles redirection intelligently based on the URL path.
  */
 const UniversalProtectedRoute = ({ children }) => {
+  const location = useLocation();
   const isUser = !!localStorage.getItem("token");
   const isStaff = !!localStorage.getItem("staffToken");
   const isAdmin = !!localStorage.getItem("adminToken");
 
-  // If NO ONE is logged in, redirect to login
+  // If NO ONE is logged in, redirect based on where they were trying to go
   if (!isUser && !isStaff && !isAdmin) {
+    // If trying to access Staff pages, go to Staff Login
+    if (location.pathname.startsWith("/staff")) {
+      return <Navigate to="/staff/login" replace />;
+    }
+    // If trying to access Admin pages, go to Admin Login
+    if (location.pathname.startsWith("/admin")) {
+      return <Navigate to="/admin/login" replace />;
+    }
+    // Default: Go to Student Login
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -131,14 +157,15 @@ function App() {
     }
 
     // 2. ✅ GLOBAL FIX: Intercept API calls and attach the correct token
-    // This stops the 401 errors that force-redirect you to login
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem("token");
         const staffToken = localStorage.getItem("staffToken");
+        const adminToken = localStorage.getItem("adminToken");
 
-        // Use Staff Token if User Token is missing
-        const activeToken = token || staffToken;
+        // Prioritize: Student -> Staff -> Admin (or logic fitting your needs)
+        // Usually, only one should exist at a time.
+        const activeToken = token || staffToken || adminToken;
 
         if (activeToken) {
           config.headers.Authorization = `Bearer ${activeToken}`;
@@ -148,7 +175,6 @@ function App() {
       (error) => Promise.reject(error)
     );
 
-    // Cleanup the interceptor on unmount
     return () => {
       axios.interceptors.request.eject(requestInterceptor);
     };
@@ -202,31 +228,25 @@ function App() {
               <Route
                 path="/signup"
                 element={
-                  localStorage.getItem("token") ? (
-                    <Navigate to="/home" replace />
-                  ) : (
+                  <PublicRoute>
                     <Signup />
-                  )
+                  </PublicRoute>
                 }
               />
               <Route
                 path="/login"
                 element={
-                  localStorage.getItem("token") ? (
-                    <Navigate to="/home" replace />
-                  ) : (
+                  <PublicRoute>
                     <Login />
-                  )
+                  </PublicRoute>
                 }
               />
               <Route
                 path="/staff/login"
                 element={
-                  localStorage.getItem("staffToken") ? (
-                    <Navigate to="/home" replace />
-                  ) : (
+                  <PublicRoute>
                     <StaffLogin />
-                  )
+                  </PublicRoute>
                 }
               />
 
@@ -237,11 +257,9 @@ function App() {
               <Route
                 path="/admin/login"
                 element={
-                  localStorage.getItem("adminToken") ? (
-                    <Navigate to="/admin/dashboard" replace />
-                  ) : (
+                  <PublicRoute>
                     <AdminLogin />
-                  )
+                  </PublicRoute>
                 }
               />
               <Route
@@ -328,7 +346,7 @@ function App() {
                 }
               />
 
-              {/* ✅ FIXED: Now correctly protected (Staff Token accepted) */}
+              {/* ✅ Staff Listing Page */}
               <Route
                 path="/staff"
                 element={
