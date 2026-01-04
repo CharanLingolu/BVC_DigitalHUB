@@ -18,11 +18,16 @@ const staffSchema = new mongoose.Schema(
 
     photo: { type: String },
     email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-  },
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      select: false,
+    },
   },
   { timestamps: true }
 );

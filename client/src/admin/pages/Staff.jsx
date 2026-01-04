@@ -55,6 +55,7 @@ const normalizeSubjects = (subjects) => {
 
 const Staff = () => {
   const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [dept, setDept] = useState("");
 
@@ -72,16 +73,17 @@ const Staff = () => {
 
   const token = localStorage.getItem("adminToken");
 
-  /* -------- FETCH -------- */
   const fetchStaff = async () => {
+    setLoading(true); // 1. Start loading
     try {
-      // ✅ REPLACED HARDCODED URL
       const res = await axios.get(STAFF_API_URL, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStaff(res.data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false); // 2. Stop loading (happens whether success or error)
     }
   };
 
@@ -101,13 +103,14 @@ const Staff = () => {
     setForm({
       ...s,
       subjects: normalizeSubjects(s.subjects).join(", "),
+      password: "",
     });
     setFile(null);
   };
 
   const addStaff = async () => {
-    if (!form.name || !form.department || !form.position) {
-      toast.error("Name, Department and Position are required");
+    if (!form.name || !form.department || !form.position || !form.password) {
+      toast.error("Name, Department, Position, and Password are required");
       return;
     }
 
@@ -286,7 +289,43 @@ const Staff = () => {
 
         {/* Staff Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filtered.length > 0 ? (
+          {loading ? (
+            // ================= FANCY LOADING SKELETONS =================
+            [...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-[#161b22]/60 rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden relative shadow-sm"
+              >
+                {/* Image Skeleton */}
+                <div className="h-52 bg-slate-200 dark:bg-slate-700/50 animate-pulse relative">
+                  <div className="absolute bottom-4 left-6 space-y-2">
+                    <div className="h-6 w-32 bg-slate-300 dark:bg-slate-600/50 rounded-lg" />
+                    <div className="h-4 w-20 bg-slate-300 dark:bg-slate-600/50 rounded-lg" />
+                  </div>
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="p-6 flex flex-col gap-6">
+                  {/* Stats Grid Skeleton */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                    <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                  </div>
+
+                  {/* Buttons Skeleton */}
+                  <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5 mt-auto">
+                    <div className="flex-1 h-10 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Shimmer Overlay */}
+                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent z-20" />
+              </div>
+            ))
+          ) : filtered.length > 0 ? (
+            // ================= ACTUAL DATA =================
             filtered.map((s) => (
               <StaffCard
                 key={s._id}
@@ -300,6 +339,7 @@ const Staff = () => {
               />
             ))
           ) : (
+            // ================= EMPTY STATE =================
             <div className="col-span-full py-20 text-center opacity-50">
               <Sparkles className="w-16 h-16 mx-auto mb-4 text-slate-300" />
               <h3 className="text-2xl font-bold">No staff members found</h3>
@@ -527,6 +567,14 @@ const StaffForm = ({
         placeholder="faculty@college.edu"
         value={form.email || ""}
         onChange={(e) => setForm({ ...form, email: e.target.value })}
+      />
+
+      <Input
+        label="Account Password"
+        type="password"
+        placeholder="••••••••"
+        value={form.password || ""}
+        onChange={(e) => setForm({ ...form, password: e.target.value })}
       />
 
       <Input

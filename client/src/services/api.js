@@ -7,13 +7,12 @@ const API = axios.create({
 // 🔐 Attach token EVERY request
 API.interceptors.request.use(
   (req) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Student
+    const staffToken = localStorage.getItem("staffToken"); // Staff
+    const adminToken = localStorage.getItem("adminToken"); // Admin
 
-    // ✅ ADDED: Also check for admin token to fix 401 errors for Admin actions
-    const adminToken = localStorage.getItem("adminToken");
-
-    // Use user token if available, otherwise fallback to admin token
-    const activeToken = token || adminToken;
+    // ✅ FIX: Prioritize checking all token types
+    const activeToken = token || staffToken || adminToken;
 
     if (activeToken) {
       req.headers.Authorization = `Bearer ${activeToken}`;

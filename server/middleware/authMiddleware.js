@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import Admin from "../models/Admin.js"; // ✅ Added: Import Admin model
+import Admin from "../models/Admin.js";
+import Staff from "../models/Staff.js";
 
 const protect = async (req, res, next) => {
   let token;
@@ -17,21 +18,30 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // 3️⃣ Get account (exclude password)
-      // First, try to find the ID in the regular User collection
-      req.user = await User.findById(decoded.id).select("-password");
+      // Check User Collection
+      let account = await User.findById(decoded.id).select("-password");
 
-      // ✅ FIX: If not found in User, search the Admin collection
-      if (!req.user) {
-        req.user = await Admin.findById(decoded.id).select("-password");
+      // ✅ FIX: If not User, check Admin
+      if (!account) {
+        account = await Admin.findById(decoded.id).select("-password");
+      }
+
+      // ✅ FIX: If not Admin, check Staff
+      if (!account) {
+        account = await Staff.findById(decoded.id).select("-password");
       }
 
       // 4️⃣ Final Check
-      if (!req.user) {
+      if (!account) {
         return res.status(401).json({ message: "Account not found" });
       }
 
+      // Attach the found account to req.user so controllers can access it
+      req.user = account;
+
       next();
     } catch (error) {
+      console.error(error);
       return res.status(401).json({
         message: "Not authorized, token failed",
       });

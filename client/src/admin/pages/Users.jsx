@@ -14,15 +14,23 @@ import {
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true); // Added loading state
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     adminAPI
       .get("/admin/users")
-      .then((res) => setUsers(res.data))
-      .catch(() => console.error("Failed to load users"));
+      .then((res) => {
+        setUsers(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        console.error("Failed to load users");
+        setLoading(false);
+      });
   }, []);
 
   const filtered = users.filter((u) => {
@@ -56,7 +64,7 @@ const Users = () => {
                 <UsersIcon className="w-8 h-8 group-hover:scale-110 transition-transform duration-300 ease-out" />
               </span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-pink-600 to-orange-500 dark:from-fuchsia-400 dark:via-pink-400 dark:to-orange-400">
-                User Directory
+                Students Directory
               </span>
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
@@ -139,7 +147,32 @@ const Users = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up"
           style={{ animationDelay: "200ms" }}
         >
-          {filtered.length > 0 ? (
+          {loading ? (
+            // Fancy Loading Skeletons
+            [...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-[#161b22] p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
+              >
+                <div className="animate-pulse flex items-start gap-4">
+                  {/* Profile Pic Skeleton */}
+                  <div className="shrink-0 w-16 h-16 rounded-2xl bg-slate-200 dark:bg-slate-700/50" />
+
+                  {/* Info Skeleton */}
+                  <div className="flex-1 space-y-3 py-1">
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700/50 rounded w-3/4" />
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700/50 rounded w-1/2" />
+                    <div className="flex gap-2 pt-1">
+                      <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700/50 rounded-lg" />
+                      <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700/50 rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+                {/* Shimmer Effect Overlay */}
+                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent" />
+              </div>
+            ))
+          ) : filtered.length > 0 ? (
             filtered.map((u) => (
               <div
                 key={u._id}

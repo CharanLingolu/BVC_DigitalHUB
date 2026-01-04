@@ -9,17 +9,24 @@ import { useState, useEffect, Suspense, lazy } from "react";
 import { ToastContainer } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios"; // ✅ REQUIRED: Import axios to fix API calls
 
 // Components
 import Footer from "./components/Footer";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute"; // For Students
+import AdminProtectedRoute from "./admin/components/AdminProtectedRoute"; // For Admin
 
 // Lazy Loaded Pages
 const Landing = lazy(() => import("./pages/Landing"));
 const Signup = lazy(() => import("./pages/Signup"));
 const OTP = lazy(() => import("./pages/OTP"));
 const Login = lazy(() => import("./pages/Login"));
+
+// Staff Pages
+const StaffLogin = lazy(() => import("./staff/components/StaffLogin"));
+const StaffProfile = lazy(() => import("./staff/pages/StaffProfile"));
+
+// Shared Pages
 const Home = lazy(() => import("./pages/Home"));
 const Projects = lazy(() => import("./pages/Projects"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -65,12 +72,28 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
   </div>
 );
 
+/**
+ * ✅ UNIVERSAL ROUTE (Allows Staff OR Student)
+ */
 const UniversalProtectedRoute = ({ children }) => {
   const isUser = !!localStorage.getItem("token");
+  const isStaff = !!localStorage.getItem("staffToken");
   const isAdmin = !!localStorage.getItem("adminToken");
 
-  if (!isUser && !isAdmin) {
+  // If NO ONE is logged in, redirect to login
+  if (!isUser && !isStaff && !isAdmin) {
     return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+/**
+ * ✅ STAFF ONLY ROUTE
+ */
+const StaffProtectedRoute = ({ children }) => {
+  const isStaff = !!localStorage.getItem("staffToken");
+  if (!isStaff) {
+    return <Navigate to="/staff/login" replace />;
   }
   return children;
 };
@@ -81,8 +104,10 @@ const UniversalProtectedRoute = ({ children }) => {
 const RootRedirector = () => {
   const token = localStorage.getItem("token");
   const adminToken = localStorage.getItem("adminToken");
+  const staffToken = localStorage.getItem("staffToken");
 
   if (adminToken) return <Navigate to="/admin/dashboard" replace />;
+  if (staffToken) return <Navigate to="/home" replace />;
   if (token) return <Navigate to="/home" replace />;
   return <Landing />;
 };
@@ -95,6 +120,7 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // 1. Theme Logic
     const html = document.documentElement;
     if (dark) {
       html.classList.add("dark");
@@ -103,6 +129,29 @@ function App() {
       html.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
+
+    // 2. ✅ GLOBAL FIX: Intercept API calls and attach the correct token
+    // This stops the 401 errors that force-redirect you to login
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem("token");
+        const staffToken = localStorage.getItem("staffToken");
+
+        // Use Staff Token if User Token is missing
+        const activeToken = token || staffToken;
+
+        if (activeToken) {
+          config.headers.Authorization = `Bearer ${activeToken}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Cleanup the interceptor on unmount
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
   }, [dark]);
 
   return (
@@ -116,7 +165,7 @@ function App() {
       >
         {isProcessing && <LoadingOverlay message="Processing request..." />}
 
-        {/* 🌙 GLOBAL THEME TOGGLE */}
+        {/* Theme Toggle Button */}
         <button
           onClick={() => setDark(!dark)}
           className="fixed bottom-8 right-8 z-[100] w-16 h-16 rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/40 dark:border-white/10 flex items-center justify-center text-2xl cursor-pointer shadow-lg transition-all duration-1000 ease-in-out hover:scale-110 active:scale-90 group"
@@ -147,7 +196,7 @@ function App() {
         <Suspense fallback={<LoadingOverlay message="Loading BVC Hub..." />}>
           <div className="flex-grow">
             <Routes>
-              {/* ================= PUBLIC ================= */}
+              {/* ================= PUBLIC ROUTES ================= */}
               <Route path="/" element={<RootRedirector />} />
 
               <Route
@@ -170,11 +219,21 @@ function App() {
                   )
                 }
               />
+              <Route
+                path="/staff/login"
+                element={
+                  localStorage.getItem("staffToken") ? (
+                    <Navigate to="/home" replace />
+                  ) : (
+                    <StaffLogin />
+                  )
+                }
+              />
 
               <Route path="/otp" element={<OTP />} />
               <Route path="/onboarding" element={<Onboarding />} />
 
-              {/* ================= ADMIN ================= */}
+              {/* ================= ADMIN ROUTES ================= */}
               <Route
                 path="/admin/login"
                 element={
@@ -234,7 +293,24 @@ function App() {
                 }
               />
 
-              {/* ================= SHARED ================= */}
+              {/* ================= SHARED ROUTES (Staff & Students) ================= */}
+
+              <Route
+                path="/home"
+                element={
+                  <UniversalProtectedRoute>
+                    <Home />
+                  </UniversalProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects"
+                element={
+                  <UniversalProtectedRoute>
+                    <Projects />
+                  </UniversalProtectedRoute>
+                }
+              />
               <Route
                 path="/projects/:id"
                 element={
@@ -243,32 +319,69 @@ function App() {
                   </UniversalProtectedRoute>
                 }
               />
-
-              {/* ================= USER PROTECTED ================= */}
-              <Route
-                path="/home"
-                element={
-                  <ProtectedRoute>
-                    <Home />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects"
-                element={
-                  <ProtectedRoute>
-                    <Projects />
-                  </ProtectedRoute>
-                }
-              />
               <Route
                 path="/projects/edit/:id"
                 element={
-                  <ProtectedRoute>
+                  <UniversalProtectedRoute>
                     <EditProject />
-                  </ProtectedRoute>
+                  </UniversalProtectedRoute>
                 }
               />
+
+              {/* ✅ FIXED: Now correctly protected (Staff Token accepted) */}
+              <Route
+                path="/staff"
+                element={
+                  <UniversalProtectedRoute>
+                    <Staff />
+                  </UniversalProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/events"
+                element={
+                  <UniversalProtectedRoute>
+                    <Events />
+                  </UniversalProtectedRoute>
+                }
+              />
+              <Route
+                path="/events/:id"
+                element={
+                  <UniversalProtectedRoute>
+                    <EventDetails />
+                  </UniversalProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs"
+                element={
+                  <UniversalProtectedRoute>
+                    <Jobs />
+                  </UniversalProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs/:id"
+                element={
+                  <UniversalProtectedRoute>
+                    <JobDetails />
+                  </UniversalProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs/:id/apply"
+                element={
+                  <UniversalProtectedRoute>
+                    <JobApply />
+                  </UniversalProtectedRoute>
+                }
+              />
+
+              {/* ================= PROFILE ROUTES ================= */}
+
+              {/* Student Only */}
               <Route
                 path="/profile"
                 element={
@@ -277,52 +390,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Staff Only */}
               <Route
-                path="/staff"
+                path="/staff/profile"
                 element={
-                  <ProtectedRoute>
-                    <Staff />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/events"
-                element={
-                  <ProtectedRoute>
-                    <Events />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/events/:id"
-                element={
-                  <ProtectedRoute>
-                    <EventDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/jobs"
-                element={
-                  <ProtectedRoute>
-                    <Jobs />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/jobs/:id"
-                element={
-                  <ProtectedRoute>
-                    <JobDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/jobs/:id/apply"
-                element={
-                  <ProtectedRoute>
-                    <JobApply />
-                  </ProtectedRoute>
+                  <StaffProtectedRoute>
+                    <StaffProfile />
+                  </StaffProtectedRoute>
                 }
               />
 

@@ -202,14 +202,57 @@ const Jobs = () => {
           </div>
         </div>
 
-        {/* Jobs Grid */}
-        {isLoading ? (
-          <div className="flex justify-center pt-20">
-            <Loader2 className="animate-spin h-12 w-12 text-cyan-600" />
-          </div>
-        ) : filteredJobs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredJobs.map((job) => (
+        {/* Jobs Grid Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {isLoading ? (
+            // ================= FANCY LOADING SKELETONS =================
+            [...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="relative bg-white/60 dark:bg-[#161b22]/60 rounded-[2.5rem] border border-white/50 dark:border-white/5 overflow-hidden shadow-sm flex flex-col h-[400px]"
+              >
+                {/* Header Skeleton */}
+                <div className="h-40 bg-slate-200 dark:bg-slate-700/50 animate-pulse relative p-6 flex flex-col justify-between">
+                  <div className="flex justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-300 dark:bg-slate-600/50" />
+                    <div className="w-20 h-6 rounded-full bg-slate-300 dark:bg-slate-600/50" />
+                  </div>
+                  <div className="w-1/2 h-8 rounded-lg bg-slate-300 dark:bg-slate-600/50" />
+                </div>
+
+                {/* Body Skeleton */}
+                <div className="p-6 pt-8 flex flex-col flex-1 relative -mt-6 rounded-t-[2.5rem] bg-white dark:bg-[#161b22] border-t border-white/20 dark:border-white/5">
+                  {/* Title Line */}
+                  <div className="h-8 w-3/4 bg-slate-200 dark:bg-slate-700/50 rounded-lg mb-4 animate-pulse" />
+
+                  {/* Meta Grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <div className="h-4 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-4 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse col-span-2" />
+                  </div>
+
+                  {/* Description Lines */}
+                  <div className="space-y-2 mb-6 flex-1">
+                    <div className="h-3 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-3 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-2 pt-4 mt-auto">
+                    <div className="h-12 flex-1 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                    <div className="h-12 flex-1 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Shimmer Overlay */}
+                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-50 pointer-events-none" />
+              </div>
+            ))
+          ) : filteredJobs.length > 0 ? (
+            // ================= ACTUAL DATA =================
+            filteredJobs.map((job) => (
               <JobCard
                 key={job._id}
                 job={job}
@@ -219,19 +262,20 @@ const Jobs = () => {
                   setShowDeleteModal(true);
                 }}
               />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 opacity-60">
-            <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
-            <h3 className="text-2xl font-bold text-slate-400 dark:text-slate-500">
-              No Jobs Posted
-            </h3>
-            <p className="text-slate-400">
-              Create a new listing to get started.
-            </p>
-          </div>
-        )}
+            ))
+          ) : (
+            // ================= EMPTY STATE =================
+            <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-60">
+              <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
+              <h3 className="text-2xl font-bold text-slate-400 dark:text-slate-500">
+                No Jobs Posted
+              </h3>
+              <p className="text-slate-400">
+                Create a new listing to get started.
+              </p>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Modal for Create/Edit */}

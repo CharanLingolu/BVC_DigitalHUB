@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../services/api"; // ✅ FIX: Import the configured API instance
 import Navbar from "../components/Navbar";
 import StaffCard from "../components/StaffCard";
 import {
@@ -16,9 +16,6 @@ import {
   Zap,
   Mail,
 } from "lucide-react";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // Helper to handle both string and array formats for subjects from Admin
 const normalizeSubjects = (subjects) => {
@@ -42,20 +39,20 @@ const Staff = () => {
 
   useEffect(() => {
     const fetchStaff = () => {
-      const token = localStorage.getItem("token");
-
-      // ✅ 2. Replace the hardcoded string with the dynamic variable
-      axios
-        .get(`${API_BASE_URL}/info/staff`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      // ✅ FIX: Use API.get() without manual headers.
+      // The interceptor in api.js handles the token automatically now.
+      API.get("/info/staff")
         .then((res) => {
           setStaff(res.data);
           setLoading(false);
         })
         .catch((err) => {
           setLoading(false);
-          if (err.response?.status === 401) navigate("/login");
+          // Only redirect if absolutely necessary.
+          // If you want this page public, remove the navigate line below.
+          if (err.response?.status === 401) {
+            // navigate("/login");
+          }
         });
     };
 
@@ -74,38 +71,12 @@ const Staff = () => {
 
       {/* --- SCROLLBAR & CLIPPING FIXES --- */}
       <style>{`
-        /* 1. SHORTEN THE TRACK TO STOP BEFORE CORNER CURVES */
-        .custom-scrollbar::-webkit-scrollbar-track { 
-          background: transparent; 
-          margin-block: 65px; 
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { 
-          width: 16px; 
-        }
-
-        /* 2. FLOATING INSET THUMB */
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-          background-color: rgba(99, 102, 241, 0.3); 
-          /* Thick 6px border pushes the bar AWAY from the edge */
-          border: 6px solid transparent; 
-          background-clip: content-box; 
-          border-radius: 20px; 
-        }
-
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { 
-          background-color: rgba(255, 255, 255, 0.15); 
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(99, 102, 241, 0.5);
-        }
-
-        /* 3. RADIAL MASK HACK TO FORCE CLIPPING */
-        .panel-force-clip {
-          -webkit-mask-image: -webkit-radial-gradient(white, black);
-          mask-image: radial-gradient(white, black);
-        }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; margin-block: 65px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 16px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(99, 102, 241, 0.3); border: 6px solid transparent; background-clip: content-box; border-radius: 20px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(99, 102, 241, 0.5); }
+        .panel-force-clip { -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); }
       `}</style>
 
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -160,7 +131,7 @@ const Staff = () => {
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                style={{ colorScheme: "dark" }} // FIX FOR THEME
+                style={{ colorScheme: "dark" }}
                 className="w-full pl-9 pr-8 py-3 bg-transparent text-sm font-semibold text-slate-600 dark:text-slate-300 outline-none cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors appearance-none rounded-2xl focus:bg-slate-100 dark:focus:bg-white/5"
               >
                 <option value="" className="bg-white dark:bg-[#13151f]">
@@ -215,7 +186,6 @@ const Staff = () => {
 const StaffDetailPanel = ({ staff, onClose }) => {
   const getPos = (s) =>
     s.position || s.designation || s.role || "Faculty Member";
-
   const subjects = normalizeSubjects(staff.subjects);
 
   return (
@@ -224,7 +194,6 @@ const StaffDetailPanel = ({ staff, onClose }) => {
         className="absolute inset-0 bg-black/60 dark:bg-black/80 transition-opacity"
         onClick={onClose}
       />
-      {/* 1. MASK HACK APPLIED HERE TO PREVENT SCROLLBAR BLEEDING */}
       <div className="relative w-full max-w-4xl bg-white dark:bg-[#13151f] h-auto max-h-[92vh] md:h-[550px] rounded-[2.5rem] md:rounded-[3rem] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col md:flex-row shadow-2xl animate-in zoom-in-95 duration-200 panel-force-clip">
         {/* Left Profile Section */}
         <div className="w-full md:w-[35%] bg-slate-50 dark:bg-[#0e1016] p-8 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 relative shrink-0">
@@ -266,8 +235,7 @@ const StaffDetailPanel = ({ staff, onClose }) => {
             </div>
           </div>
         </div>
-
-        {/* 2. SCROLLABLE AREA WITH OVERFLOW-X-HIDDEN FIX */}
+        {/* Right Scrollable Area */}
         <div className="flex-1 p-8 md:p-12 bg-white dark:bg-[#13151f] overflow-y-auto overflow-x-hidden relative custom-scrollbar pb-16 md:pb-12">
           <button
             onClick={onClose}
@@ -275,9 +243,7 @@ const StaffDetailPanel = ({ staff, onClose }) => {
           >
             <X size={20} />
           </button>
-
           <div className="space-y-8 mt-4 md:mt-0">
-            {/* Real-time Biography */}
             <div>
               <h4 className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] mb-3">
                 <Sparkles size={14} /> About Faculty
@@ -289,8 +255,6 @@ const StaffDetailPanel = ({ staff, onClose }) => {
                 "
               </p>
             </div>
-
-            {/* Real-time Qualification */}
             <div className="p-6 rounded-3xl bg-slate-50 dark:bg-[#0B0C15] border border-slate-200 dark:border-white/5 shadow-inner">
               <h4 className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
                 <GraduationCap size={16} /> Qualification
@@ -299,8 +263,6 @@ const StaffDetailPanel = ({ staff, onClose }) => {
                 {staff.qualification || "Not Specified"}
               </p>
             </div>
-
-            {/* Real-time Contact Data */}
             {staff.email && (
               <div className="p-6 rounded-3xl bg-slate-50 dark:bg-[#0B0C15] border border-slate-200 dark:border-white/5 flex items-center gap-4 shadow-inner">
                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 flex items-center justify-center text-emerald-500 border border-slate-100 dark:border-white/10">
@@ -316,8 +278,6 @@ const StaffDetailPanel = ({ staff, onClose }) => {
                 </div>
               </div>
             )}
-
-            {/* Real-time Expertise (mapped from Admin subjects) */}
             <div>
               <h4 className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
                 <BookOpen size={16} /> Expertise
@@ -340,8 +300,6 @@ const StaffDetailPanel = ({ staff, onClose }) => {
               </div>
             </div>
           </div>
-
-          {/* Synchronized Footer (Matches Admin Layout) */}
           <div className="mt-10 pt-6 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
             <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">

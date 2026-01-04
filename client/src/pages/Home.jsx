@@ -80,16 +80,32 @@ const Home = () => {
     return () => observer.disconnect();
   }, []);
 
+  // inside useEffect in Home.jsx
+
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [statsRes, eventsRes, jobsRes, meRes] = await Promise.all([
+        // ✅ FIX: Check for Staff vs Student before calling API
+        const staffData = localStorage.getItem("staffData");
+        const studentToken = localStorage.getItem("token");
+
+        // 1. Handle User Data
+        if (staffData) {
+          setUser(JSON.parse(staffData)); // Use local data for staff
+        } else if (studentToken) {
+          const meRes = await API.get("/users/me").catch(() => ({
+            data: null,
+          }));
+          setUser(meRes.data);
+        }
+
+        // 2. Fetch Stats (Safe for everyone)
+        const [statsRes, eventsRes, jobsRes] = await Promise.all([
           API.get("/info/stats").catch(() => ({
             data: { students: 1200, staff: 85 },
           })),
           API.get("/info/events").catch(() => ({ data: [] })),
           API.get("/info/jobs").catch(() => ({ data: [] })),
-          API.get("/users/me").catch(() => ({ data: null })),
         ]);
 
         setLiveData({
@@ -100,7 +116,6 @@ const Home = () => {
           latestJob: jobsRes.data[0] || null,
           nextEvent: eventsRes.data[0] || null,
         });
-        setUser(meRes.data);
       } catch (err) {
         console.error("Sync Error", err);
       } finally {

@@ -208,10 +208,51 @@ const Events = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center pt-20">
-            <Loader2 className="animate-spin h-12 w-12 text-violet-600" />
+          // ================= FANCY LOADING SKELETONS =================
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="relative bg-white dark:bg-[#161b22]/60 rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm flex flex-col h-[450px]"
+              >
+                {/* Banner Skeleton */}
+                <div className="h-52 bg-slate-200 dark:bg-slate-700/50 animate-pulse relative">
+                  {/* Date Badge Skeleton */}
+                  <div className="absolute top-4 left-4 w-20 h-20 rounded-2xl bg-white/50 dark:bg-black/20 backdrop-blur-md border border-white/20" />
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="p-6 pt-8 flex flex-col flex-1 relative -mt-10 rounded-t-[2.5rem] bg-white dark:bg-[#161b22] border-t border-slate-100 dark:border-white/5">
+                  {/* Title Line */}
+                  <div className="h-8 w-3/4 bg-slate-200 dark:bg-slate-700/50 rounded-lg mb-4 animate-pulse" />
+
+                  {/* Meta Data Lines (Time/Location) */}
+                  <div className="flex flex-col gap-2 mb-6">
+                    <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                  </div>
+
+                  {/* Description Lines */}
+                  <div className="space-y-2 mb-6 flex-1">
+                    <div className="h-3 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-3 w-full bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                    <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-700/50 rounded animate-pulse" />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-2 pt-4 mt-auto">
+                    <div className="h-12 flex-1 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                    <div className="h-12 flex-1 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Shimmer Overlay */}
+                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-50 pointer-events-none" />
+              </div>
+            ))}
           </div>
         ) : filteredEvents.length > 0 ? (
+          // ================= ACTUAL DATA =================
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.map((event) => (
               <EventCard
@@ -226,6 +267,7 @@ const Events = () => {
             ))}
           </div>
         ) : (
+          // ================= EMPTY STATE =================
           <div className="flex flex-col items-center justify-center py-20 opacity-60">
             <Sparkles className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
             <h3 className="text-2xl font-bold text-slate-400 dark:text-slate-500">

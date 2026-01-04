@@ -13,6 +13,9 @@ import userRoutes from "./routes/userRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import infoRoutes from "./routes/infoRoutes.js";
 
+// Staff Routes
+import staffAuthRoutes from "./routes/staffAuthRoutes.js";
+
 // Admin Routes
 import adminAuthRoutes from "./routes/adminAuth.js";
 import adminUserRoutes from "./routes/adminUsers.js";
@@ -75,6 +78,11 @@ app.use("/api/admin/staff", adminStaffRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminUserRoutes);
+
+/* =======================
+   STAFF API ROUTES
+   ======================= */
+app.use("/api/staff/auth", staffAuthRoutes);
 
 /* =======================
    CLIENT API ROUTES
