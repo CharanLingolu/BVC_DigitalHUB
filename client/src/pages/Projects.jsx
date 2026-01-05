@@ -11,7 +11,6 @@ import {
   Sparkles,
   Trash2,
   AlertTriangle,
-  X,
   Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -50,17 +49,27 @@ const Projects = () => {
     }
   };
 
-  /* ================= 🔐 USER LOGIC (STRICTLY PRESERVED) ================= */
+  /* ================= 🔐 USER LOGIC (FIXED FOR STAFF) ================= */
   const getCurrentUserId = () => {
     try {
-      const raw =
-        localStorage.getItem("user") ||
-        localStorage.getItem("userInfo") ||
-        localStorage.getItem("authUser");
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed?.user?._id) return parsed.user._id.toString();
-      if (parsed?._id) return parsed._id.toString();
+      // ✅ Check Student, Staff, AND Admin storage keys
+      const userRaw = localStorage.getItem("user");
+      const staffRaw = localStorage.getItem("staffData");
+      const adminRaw = localStorage.getItem("admin");
+
+      if (userRaw) {
+        const parsed = JSON.parse(userRaw);
+        // Handle potential nesting like { user: { _id: ... } }
+        return parsed.user?._id || parsed._id || parsed.id;
+      }
+      if (staffRaw) {
+        const parsed = JSON.parse(staffRaw);
+        return parsed._id || parsed.id;
+      }
+      if (adminRaw) {
+        const parsed = JSON.parse(adminRaw);
+        return parsed._id || parsed.id;
+      }
       return null;
     } catch {
       return null;
@@ -72,7 +81,7 @@ const Projects = () => {
   useEffect(() => {
     const syncUser = () => setCurrentUserId(getCurrentUserId());
     window.addEventListener("storage", syncUser);
-    window.addEventListener("userUpdated", syncUser);
+    window.addEventListener("userUpdated", syncUser); // Custom event if you use it
     return () => {
       window.removeEventListener("storage", syncUser);
       window.removeEventListener("userUpdated", syncUser);
@@ -236,7 +245,7 @@ const Projects = () => {
         )}
       </main>
 
-      {/* ✅ FANCY MODERN DELETE PANEL */}
+      {/* --- DELETE MODAL --- */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div

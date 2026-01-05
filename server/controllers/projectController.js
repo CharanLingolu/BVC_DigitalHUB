@@ -1,7 +1,7 @@
 import Project from "../models/Project.js";
 import mongoose from "mongoose";
 
-// CREATE
+// CREATE (Students Only)
 export const createProject = async (req, res) => {
   try {
     const media = req.files?.map((file) => file.path) || [];
@@ -19,7 +19,7 @@ export const createProject = async (req, res) => {
   }
 };
 
-// GET BY ID
+// GET BY ID (Allowed for All)
 export const getProjectById = async (req, res) => {
   try {
     // Safety check: validate ID format
@@ -38,7 +38,7 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// GET ALL
+// GET ALL (Allowed for All)
 export const getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find()
@@ -50,7 +50,7 @@ export const getAllProjects = async (req, res) => {
   }
 };
 
-// GET MY PROJECTS
+// GET MY PROJECTS (Students Only)
 export const getMyProjects = async (req, res) => {
   try {
     const projects = await Project.find({ user: req.user._id }).sort({
@@ -62,13 +62,14 @@ export const getMyProjects = async (req, res) => {
   }
 };
 
-// DELETE
+// DELETE (Students Only - Owner Check)
 export const deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: "Not found" });
 
-    if (project.user.toString() !== req.user._id.toString()) {
+    // Ensure req.user exists (Student) and matches owner
+    if (!req.user || project.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -79,10 +80,11 @@ export const deleteProject = async (req, res) => {
   }
 };
 
-// LIKE / UNLIKE — FIXED LOGIC
+// ✅ LIKE / UNLIKE — UPDATED to Allow Staff
 export const likeProject = async (req, res) => {
   try {
-    const userId = req.user?._id; // Ensure user exists
+    // ✅ Check for Student (req.user) OR Staff (req.staff)
+    const userId = req.user?._id || req.staff?._id;
     const projectId = req.params.id;
 
     if (!userId) {
@@ -114,13 +116,14 @@ export const likeProject = async (req, res) => {
   }
 };
 
-// UPDATE (EDIT PROJECT + MEDIA)
+// UPDATE (Students Only - Owner Check)
 export const updateProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    if (project.user.toString() !== req.user._id.toString()) {
+    // Ensure req.user exists (Student) and matches owner
+    if (!req.user || project.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -136,7 +139,6 @@ export const updateProject = async (req, res) => {
     if (description) project.description = description;
     if (repoLink) project.repoLink = repoLink;
 
-    // Fix: Handle techStack update
     if (techStack) {
       project.techStack = techStack.split(",");
     }

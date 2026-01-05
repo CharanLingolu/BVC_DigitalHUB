@@ -18,7 +18,12 @@ export const getStaffById = async (req, res) => {
 // Update Logged-in Staff Profile
 export const updateStaffProfile = async (req, res) => {
   try {
-    const staff = await Staff.findById(req.user.id);
+    // ✅ Safety: Ensure req.user exists (Middleware should handle this, but safe to check)
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const staff = await Staff.findById(req.user._id);
 
     if (staff) {
       // 1. Update Basic Text Fields

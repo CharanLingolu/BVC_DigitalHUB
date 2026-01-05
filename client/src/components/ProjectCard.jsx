@@ -7,9 +7,7 @@ import {
   Trash2,
   Heart,
   User,
-  Layers,
   AlertTriangle,
-  X,
   Loader2,
 } from "lucide-react";
 
@@ -42,8 +40,12 @@ const ProjectCard = ({
 
   const handleLike = async (e) => {
     e.stopPropagation();
+
+    // ✅ FIXED: Check for Staff Token too
     const token =
-      localStorage.getItem("token") || localStorage.getItem("adminToken");
+      localStorage.getItem("token") ||
+      localStorage.getItem("adminToken") ||
+      localStorage.getItem("staffToken");
 
     if (!token) {
       toast.error("Please login to like!");
@@ -54,7 +56,8 @@ const ProjectCard = ({
     setIsLiking(true);
 
     try {
-      const { data } = await API.post(`/projects/${project._id}/like`);
+      // ✅ FIXED: Changed POST to PUT to match backend route
+      const { data } = await API.put(`/projects/${project._id}/like`);
       setLikes(data.likes);
     } catch (err) {
       toast.error("Like failed");
@@ -114,7 +117,7 @@ const ProjectCard = ({
         <div className="p-8 flex flex-col h-full relative z-10">
           {!isOwner && (
             <div className="flex items-center gap-4 mb-6">
-              {/* ✅ FIXED: Added shrink-0 to prevent the image container from collapsing */}
+              {/* shrink-0 prevents image collapse */}
               <div className="w-12 h-12 rounded-2xl shrink-0 overflow-hidden bg-slate-100 dark:bg-[#16161a] border border-slate-200 dark:border-white/10 flex items-center justify-center">
                 {project.user?.profilePic ? (
                   <img
@@ -126,7 +129,7 @@ const ProjectCard = ({
                   <User size={20} className="text-slate-400" />
                 )}
               </div>
-              {/* ✅ FIXED: Added min-w-0 to allow the text to truncate properly without pushing the image */}
+              {/* min-w-0 ensures truncation works */}
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900 dark:text-white text-base truncate mb-1 leading-none">
                   {project.user?.name || "Unknown"}

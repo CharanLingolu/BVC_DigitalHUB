@@ -11,13 +11,12 @@ import {
   Calendar,
   Image as ImageIcon,
   User,
-  Maximize2,
   Loader2,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import API from "../services/api";
 
-// ✅ Updated Hook to recognize Admin IDs for Liking
+// ✅ FIXED HOOK: Now supports User, Admin, AND Staff
 const useCurrentUserId = () => {
   const [userId, setUserId] = useState(null);
 
@@ -25,10 +24,14 @@ const useCurrentUserId = () => {
     try {
       const userRaw = localStorage.getItem("user");
       const adminRaw = localStorage.getItem("admin");
+      const staffRaw = localStorage.getItem("staffData"); // Check for staff data
 
       if (userRaw) {
         const user = JSON.parse(userRaw);
         setUserId(user._id || user.id);
+      } else if (staffRaw) {
+        const staff = JSON.parse(staffRaw);
+        setUserId(staff._id || staff.id);
       } else if (adminRaw) {
         const admin = JSON.parse(adminRaw);
         setUserId(admin._id || admin.id);
@@ -76,15 +79,15 @@ const ProjectDetails = () => {
   const [copied, setCopied] = useState(false);
   const errorShownRef = useRef(false);
 
-  // ✅ FIXED: Dependency array is constant [id, navigate] to stop the React error
   useEffect(() => {
     let cancelled = false;
 
-    // Access control: Admin or User
+    // ✅ FIXED: Check for ANY token (User, Admin, or Staff)
     const token = localStorage.getItem("token");
     const adminToken = localStorage.getItem("adminToken");
+    const staffToken = localStorage.getItem("staffToken");
 
-    if (!token && !adminToken) {
+    if (!token && !adminToken && !staffToken) {
       toast.error("Please login to view projects");
       navigate("/login");
       return;
@@ -124,10 +127,12 @@ const ProjectDetails = () => {
   const likesCount = project.likes.length;
 
   const handleLike = async () => {
+    // ✅ FIXED: Allow Staff token to like
     const token = localStorage.getItem("token");
     const adminToken = localStorage.getItem("adminToken");
+    const staffToken = localStorage.getItem("staffToken");
 
-    if (!token && !adminToken) {
+    if (!token && !adminToken && !staffToken) {
       toast.error("Please login to like");
       return;
     }
@@ -136,13 +141,16 @@ const ProjectDetails = () => {
     setIsLiking(true);
 
     try {
-      const { data } = await API.post(`/projects/${project._id}/like`);
+      // Note: Make sure your API method matches backend (PUT vs POST)
+      // We fixed backend to PUT previously.
+      const { data } = await API.put(`/projects/${project._id}/like`);
 
       setProject((prev) => ({
         ...prev,
         likes: data.likes,
       }));
     } catch (err) {
+      console.error(err);
       toast.error(
         err.response?.status === 401 ? "Unauthorized action" : "Action failed"
       );
@@ -209,7 +217,6 @@ const ProjectDetails = () => {
   };
 
   const renderActionButtons = () => (
-    /* Added pr-16 on mobile (lg:pr-8) to ensure theme switch button doesn't collide */
     <div className="p-6 pr-16 lg:p-8 lg:pr-8 border-t border-slate-200 dark:border-white/5 bg-white/50 dark:bg-black/20 backdrop-blur-xl shrink-0">
       <div className="flex items-center gap-3 lg:gap-4">
         <button
@@ -289,7 +296,6 @@ const ProjectDetails = () => {
 
         {/* Increased pt-32 on desktop to clear fixed navbar properly */}
         <main className="relative z-10 flex-1 flex flex-col items-center p-4 lg:p-8 pt-24 lg:pt-32 min-h-0">
-          {/* Back Button Section: Aligned with card max-width */}
           <div className="w-full max-w-[1400px] mb-4 shrink-0 px-2 flex justify-start">
             <button
               onClick={() => navigate(-1)}

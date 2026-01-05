@@ -51,7 +51,7 @@ const Footer = () => {
                 <div className="p-2 bg-gradient-to-tr from-cyan-400 to-indigo-600 rounded-lg shadow-lg">
                   <FaRocket className="text-white text-xl" />
                 </div>
-                <h2 className="text-2xl font-black tracking-wider text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-cyan-300 dark:to-indigo-400">
+                <h2 className="text-[18px] font-black tracking-wider text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-cyan-300 dark:to-indigo-400">
                   BVC DIGITAL HUB
                 </h2>
               </div>

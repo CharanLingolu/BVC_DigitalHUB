@@ -65,6 +65,7 @@ const Staff = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [viewStaff, setViewStaff] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ New Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -114,12 +115,13 @@ const Staff = () => {
       return;
     }
 
+    setIsSubmitting(true); // 1. Start Loading
+
     try {
       const data = new FormData();
       Object.entries(form).forEach(([k, v]) => data.append(k, v));
       if (file) data.append("photo", file);
 
-      // ✅ REPLACED HARDCODED URL
       await axios.post(STAFF_API_URL, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -128,7 +130,9 @@ const Staff = () => {
       setIsAddModalOpen(false);
       fetchStaff();
     } catch (error) {
-      toast.error("Failed to add staff");
+      toast.error(error.response?.data?.message || "Failed to add staff");
+    } finally {
+      setIsSubmitting(false); // 2. Stop Loading (Always runs)
     }
   };
 
@@ -138,21 +142,24 @@ const Staff = () => {
       return;
     }
 
+    setIsSubmitting(true); // 1. Start Loading
+
     try {
       const data = new FormData();
       Object.entries(form).forEach(([k, v]) => data.append(k, v));
       if (file) data.append("photo", file);
 
-      // ✅ REPLACED HARDCODED URL
       await axios.put(`${STAFF_API_URL}/${editingStaff._id}`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success("Staff updated", { autoClose: 1500 });
+      toast.success("Staff updated successfully", { autoClose: 1500 });
       setEditingStaff(null);
       fetchStaff();
     } catch (error) {
       toast.error("Failed to update staff");
+    } finally {
+      setIsSubmitting(false); // 2. Stop Loading
     }
   };
 
@@ -359,6 +366,7 @@ const Staff = () => {
             onSubmit={addStaff}
             submitText="Add Staff Member"
             icon={Plus}
+            isSubmitting={isSubmitting} // ✅ PASS PROP HERE
           />
         </Modal>
       )}
@@ -374,6 +382,7 @@ const Staff = () => {
             onSubmit={updateStaff}
             submitText="Save Changes"
             icon={Save}
+            isSubmitting={isSubmitting} // ✅ PASS PROP HERE
           />
         </Modal>
       )}
@@ -551,6 +560,7 @@ const StaffForm = ({
   onSubmit,
   submitText,
   icon: Icon,
+  isSubmitting, // ✅ Receive prop
 }) => (
   <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -584,19 +594,20 @@ const StaffForm = ({
         onChange={(e) => setForm({ ...form, qualification: e.target.value })}
       />
 
+      {/* --- POSITION DROPDOWN FIX --- */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
           Position
         </label>
         <select
           className="w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer"
-          style={{ colorScheme: "dark" }}
+          // style={{ colorScheme: "dark" }} // ❌ REMOVE THIS LINE (it forces dark controls in light mode)
           value={form.position || ""}
           onChange={(e) => setForm({ ...form, position: e.target.value })}
         >
           <option
             value=""
-            className="dark:bg-[#0d1117] text-slate-900 dark:text-white"
+            className="bg-white dark:bg-[#0d1117] text-slate-900 dark:text-white"
           >
             Select Position
           </option>
@@ -604,7 +615,8 @@ const StaffForm = ({
             <option
               key={p}
               value={p}
-              className="dark:bg-[#0d1117] text-slate-900 dark:text-white"
+              // ✅ FIXED COLORS HERE
+              className="bg-white dark:bg-[#0d1117] text-slate-900 dark:text-white"
             >
               {p}
             </option>
@@ -612,21 +624,30 @@ const StaffForm = ({
         </select>
       </div>
 
+      {/* --- DEPARTMENT DROPDOWN FIX --- */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
           Department
         </label>
         <select
           className="w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer"
-          style={{ colorScheme: "dark" }}
+          // style={{ colorScheme: "dark" }} // ❌ REMOVE THIS LINE
           value={form.department || ""}
           onChange={(e) => setForm({ ...form, department: e.target.value })}
         >
-          <option value="" className="dark:bg-[#0d1117] text-white">
+          <option
+            value=""
+            className="bg-white dark:bg-[#0d1117] text-slate-900 dark:text-white"
+          >
             Select Dept
           </option>
           {DEPARTMENTS.map((d) => (
-            <option key={d} value={d} className="dark:bg-[#0d1117] text-white">
+            <option
+              key={d}
+              value={d}
+              // ✅ FIXED COLORS HERE
+              className="bg-white dark:bg-[#0d1117] text-slate-900 dark:text-white"
+            >
               {d}
             </option>
           ))}
@@ -649,6 +670,7 @@ const StaffForm = ({
       />
     </div>
 
+    {/* ... (Bio and File Upload sections remain the same) ... */}
     <div className="space-y-1.5">
       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
         Biography
@@ -678,11 +700,18 @@ const StaffForm = ({
       </label>
     </div>
 
+    {/* ✅ UPDATED BUTTON WITH SPINNER */}
     <button
       onClick={onSubmit}
-      className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-lg shadow-xl shadow-indigo-500/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
+      disabled={isSubmitting} // Disable when loading
+      className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-lg shadow-xl shadow-indigo-500/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
     >
-      <Icon size={20} /> {submitText}
+      {isSubmitting ? (
+        <Loader2 size={20} className="animate-spin" />
+      ) : (
+        <Icon size={20} />
+      )}
+      {isSubmitting ? "Processing..." : submitText}
     </button>
   </div>
 );

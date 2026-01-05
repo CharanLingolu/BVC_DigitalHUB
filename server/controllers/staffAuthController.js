@@ -6,6 +6,13 @@ export const staffLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Safety Check: Ensure fields exist
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and Password are required" });
+    }
+
     // Convert email to lowercase to match the DB
     const staff = await Staff.findOne({ email: email.toLowerCase() }).select(
       "+password"
@@ -20,6 +27,7 @@ export const staffLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // ✅ Generate Token with ID
     const token = jwt.sign({ id: staff._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -27,6 +35,7 @@ export const staffLogin = async (req, res) => {
     const { password: _, ...staffData } = staff._doc;
     res.json({ token, staff: staffData });
   } catch (err) {
+    console.error("Login Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
