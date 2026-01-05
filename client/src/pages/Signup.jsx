@@ -36,6 +36,15 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ NEW CHECK: Enforce @bvcgroup.in domain
+    if (!formData.email.endsWith("@bvcgroup.in")) {
+      toast.error("Only official @bvcgroup.in emails are allowed.", {
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // ✅ CORRECT: Request OTP first
