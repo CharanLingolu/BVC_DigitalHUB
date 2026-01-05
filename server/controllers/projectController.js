@@ -80,26 +80,25 @@ export const deleteProject = async (req, res) => {
   }
 };
 
-// ✅ LIKE / UNLIKE — UPDATED to Allow Staff
 export const likeProject = async (req, res) => {
   try {
-    // ✅ Check for Student (req.user) OR Staff (req.staff)
-    const userId = req.user?._id || req.staff?._id;
+    // Check all three possible auth sources from your middleware
+    const userId =
+      req.user?._id || req.staff?._id || req.admin?._id || req.admin?.id;
     const projectId = req.params.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: Please login" });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({ message: "Invalid ID format" });
+      return res.status(401).json({ message: "Login required to like" });
     }
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Check if already liked
-    const alreadyLiked = project.likes.includes(userId);
+    // CRITICAL: Convert everything to strings for the comparison
+    const userIdStr = userId.toString();
+    const alreadyLiked = project.likes.some(
+      (id) => id.toString() === userIdStr
+    );
 
     const updatedProject = await Project.findByIdAndUpdate(
       projectId,
@@ -111,7 +110,6 @@ export const likeProject = async (req, res) => {
 
     res.status(200).json({ likes: updatedProject.likes });
   } catch (err) {
-    console.error("Like Error:", err);
     res.status(500).json({ message: "Like action failed" });
   }
 };

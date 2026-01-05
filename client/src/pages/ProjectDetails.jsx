@@ -20,27 +20,28 @@ import AdminNavbar from "../admin/components/AdminNavbar"; // Adjust path if nee
 
 import API from "../services/api";
 
+// Inside ProjectDetails.js - Update the hook for better ID detection
 const useCurrentUserId = () => {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     try {
-      const userRaw = localStorage.getItem("user");
-      const adminRaw = localStorage.getItem("admin");
-      const staffRaw = localStorage.getItem("staffData");
+      const user = JSON.parse(localStorage.getItem("user"));
+      const staff = JSON.parse(localStorage.getItem("staffData"));
+      const admin = JSON.parse(localStorage.getItem("admin"));
 
-      if (userRaw) {
-        const user = JSON.parse(userRaw);
-        setUserId(user._id || user.id);
-      } else if (staffRaw) {
-        const staff = JSON.parse(staffRaw);
-        setUserId(staff._id || staff.id);
-      } else if (adminRaw) {
-        const admin = JSON.parse(adminRaw);
-        setUserId(admin._id || admin.id);
+      const activeUser = user || staff || admin;
+      if (activeUser) {
+        // ✅ Standardize extraction: check top level then check nested .user level
+        const id =
+          activeUser._id ||
+          activeUser.id ||
+          activeUser.user?._id ||
+          activeUser.user?.id;
+        setUserId(id);
       }
     } catch (error) {
-      console.error("Failed to parse session from local storage:", error);
+      console.error("Session parse error", error);
     }
   }, []);
 
@@ -224,22 +225,25 @@ const ProjectDetails = () => {
         <button
           onClick={handleLike}
           disabled={isLiking}
-          className={`flex-[2] relative h-12 lg:h-14 rounded-2xl font-black transition-all duration-300 active:scale-90 flex items-center justify-center gap-2 lg:gap-3 border overflow-hidden ${
-            isLiked
-              ? "bg-rose-500/10 border-rose-500/50 text-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.25)]"
-              : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400"
-          }`}
+          className="flex items-center gap-2.5 transition-all duration-300 active:scale-90 group/heart"
         >
-          {/* ✅ UPDATED HEART ICON (Matches ProjectCard) */}
           <Heart
-            size={20}
+            size={26}
             className={`transition-all duration-300 ${
               isLiked
-                ? "fill-rose-500 stroke-rose-500 animate-pop drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
-                : "fill-none stroke-current"
+                ? "fill-red-500 stroke-red-500 animate-heart-pop" // ✅ Matches ProjectCard now
+                : "fill-none stroke-slate-400 dark:stroke-slate-600 group-hover/heart:stroke-red-500"
             }`}
           />
-          <span className="text-base lg:text-lg">{likesCount}</span>
+          <span
+            className={`font-black text-lg transition-colors duration-300 ${
+              isLiked
+                ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                : "text-slate-500 group-hover/heart:text-red-500"
+            }`}
+          >
+            {likesCount}
+          </span>
         </button>
 
         {project.repoLink && (
@@ -284,22 +288,6 @@ const ProjectDetails = () => {
 
   return (
     <>
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        
-        /* ✅ ADDED: Consistent Heart Pop Animation (Matches ProjectCard) */
-        @keyframes heartPop {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.5); }
-          100% { transform: scale(1); }
-        }
-        .animate-pop { 
-          animation: heartPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49); 
-        }
-      `}</style>
-
       <div className="min-h-screen lg:h-screen w-full bg-slate-50 dark:bg-[#030407] text-slate-900 dark:text-white flex flex-col lg:overflow-hidden transition-colors duration-500 relative">
         {/* ✅ DYNAMIC NAVBAR SWITCHER */}
         {isAdmin ? <AdminNavbar /> : <Navbar />}

@@ -27,6 +27,7 @@ const ProjectCard = ({
   // States for Modern Delete Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [animateLike, setAnimateLike] = useState(false);
 
   // Sync state if parent props change
   useEffect(() => {
@@ -92,17 +93,6 @@ const ProjectCard = ({
 
   return (
     <>
-      <style>{`
-        @keyframes heartPop {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.4); }
-          100% { transform: scale(1); }
-        }
-        .animate-pop { animation: heartPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
-        .scale-in { animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes scale-in { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
-      `}</style>
-
       {/* Main Card */}
       <div
         onClick={() => navigate(`/projects/${project?._id}`)}
@@ -150,28 +140,25 @@ const ProjectCard = ({
 
           <div className="mt-auto pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
             {!isOwner ? (
+              // Inside ProjectCard.js - Updated Heart Button
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className={`flex items-center gap-2.5 transition-all duration-300 active:scale-90 group/heart 
-                ${
-                  isLiked
-                    ? "text-red-500"
-                    : "text-slate-400 dark:text-slate-600 hover:text-red-500"
-                }`}
+                className="flex items-center gap-2.5 transition-all duration-300 active:scale-90 group/heart"
               >
                 <Heart
                   size={26}
-                  className={`transition-all duration-500 group-hover/heart:-rotate-12 group-hover/heart:scale-110
-                  ${
+                  className={`transition-all duration-300 ${
                     isLiked
-                      ? "fill-red-500 stroke-red-500 animate-pop drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"
-                      : "fill-none stroke-current group-hover/heart:stroke-red-500"
+                      ? "fill-red-500 stroke-red-500 animate-heart-pop" // ✅ Unified name
+                      : "fill-none stroke-slate-400 dark:stroke-slate-600 group-hover/heart:stroke-red-500"
                   }`}
                 />
                 <span
                   className={`font-black text-lg transition-colors duration-300 ${
-                    !isLiked && "group-hover/heart:text-red-500"
+                    isLiked
+                      ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                      : "text-slate-500 dark:text-slate-400 group-hover/heart:text-red-500"
                   }`}
                 >
                   {likesCount}

@@ -101,21 +101,51 @@ export const applyForJob = async (req, res) => {
       to: email,
       subject: "Job Application Submitted Successfully",
       html: `
-        <h2>Application Received</h2>
-        <p>Dear ${name},</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        /* Fallback for clients that support internal styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      
+      <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden;">
+        
+        <div style="background-color: #0056b3; padding: 30px 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">BVC Digital Hub</h1>
+        </div>
 
-        <p>Thank you for applying through <b>BVC Digital Hub</b>.</p>
+        <div style="padding: 40px 30px; color: #333333; line-height: 1.6;">
+          <h2 style="color: #0056b3; font-size: 22px; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Application Received</h2>
+          
+          <p style="font-size: 16px;">Dear <strong>${name}</strong>,</p>
 
-        <p>Your application has been submitted successfully.</p>
+          <p style="color: #555555;">Thank you for applying through <b>BVC Digital Hub</b>. We are pleased to confirm that your application has been submitted successfully.</p>
 
-        <p><b>Contact Number:</b> ${phone}</p>
+          <div style="background-color: #f9fbfd; border-left: 4px solid #0056b3; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 14px; color: #777;"><strong>Applicant Name:</strong> <span style="color: #333;">${name}</span></p>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #777;"><strong>Contact Number:</strong> <span style="color: #333;">${phone}</span></p>
+          </div>
 
-        <p>Our team will review your profile and contact you if shortlisted.</p>
+          <p style="color: #555555;">Our team will review your profile carefully. If your qualifications match our requirements, we will contact you regarding the next steps.</p>
 
-        <br />
-        <p>Best Regards,<br/>
-        <b>BVC Digital Hub Placement Team</b></p>
-      `,
+          <br />
+          <p style="margin-bottom: 5px;">Best Regards,</p>
+          <p style="margin-top: 0; font-weight: bold; color: #0056b3;">BVC Digital Hub Placement Team</p>
+        </div>
+
+        <div style="background-color: #eeeeee; padding: 20px; text-align: center; font-size: 12px; color: #888888;">
+          <p style="margin: 0;">&copy; ${new Date().getFullYear()} BVC Digital Hub. All rights reserved.</p>
+          <p style="margin: 5px 0 0 0;">This is an automated message, please do not reply.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `,
     });
 
     res.json({ message: "Mail sent successfully" });

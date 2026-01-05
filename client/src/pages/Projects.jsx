@@ -52,26 +52,23 @@ const Projects = () => {
   /* ================= 🔐 USER LOGIC (FIXED FOR STAFF) ================= */
   const getCurrentUserId = () => {
     try {
-      // ✅ Check Student, Staff, AND Admin storage keys
-      const userRaw = localStorage.getItem("user");
-      const staffRaw = localStorage.getItem("staffData");
-      const adminRaw = localStorage.getItem("admin");
+      const student = JSON.parse(localStorage.getItem("user"));
+      const staff = JSON.parse(localStorage.getItem("staffData"));
+      const admin = JSON.parse(localStorage.getItem("admin"));
 
-      if (userRaw) {
-        const parsed = JSON.parse(userRaw);
-        // Handle potential nesting like { user: { _id: ... } }
-        return parsed.user?._id || parsed._id || parsed.id;
-      }
-      if (staffRaw) {
-        const parsed = JSON.parse(staffRaw);
-        return parsed._id || parsed.id;
-      }
-      if (adminRaw) {
-        const parsed = JSON.parse(adminRaw);
-        return parsed._id || parsed.id;
-      }
-      return null;
-    } catch {
+      // Combine all into one object to check
+      const active = student || staff || admin;
+      if (!active) return null;
+
+      // This handles: admin.id, staff._id, and nested student.user._id formats
+      return (
+        active._id ||
+        active.id ||
+        active.user?._id ||
+        active.user?.id ||
+        active.admin?.id
+      );
+    } catch (err) {
       return null;
     }
   };
@@ -300,35 +297,6 @@ const Projects = () => {
           </div>
         </div>
       )}
-
-      {/* --- STYLES --- */}
-      <style>{`
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 5s ease infinite;
-        }
-        .scale-in-center { 
-          animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; 
-        }
-        @keyframes scale-in-center { 
-          0% { transform: scale(0.9); opacity: 0; } 
-          100% { transform: scale(1); opacity: 1; } 
-        }
-        
-        /* ✅ ADDED: Heart Pop Animation for Global Context */
-        @keyframes heartPop {
-          0% { transform: scale(1); }
-          40% { transform: scale(1.5); }
-          100% { transform: scale(1); }
-        }
-        .animate-pop { 
-          animation: heartPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); 
-        }
-      `}</style>
     </div>
   );
 };

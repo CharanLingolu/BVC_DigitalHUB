@@ -171,21 +171,28 @@
   animation: iconSpin 0.8s linear infinite;
 }
 
-@keyframes heartPop {
+/* index.css */
+@keyframes heartPopGlow {
   0% {
     transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
   }
-  40% {
-    transform: scale(1.5);
+  25% {
+    transform: scale(1.4);
+    filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.9));
+  }
+  50% {
+    transform: scale(0.9);
   }
   100% {
     transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
   }
 }
 
-/* Renamed to match your React component (.animate-pop) */
-.animate-pop {
-  animation: heartPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+.animate-heart-pop {
+  display: inline-block;
+  animation: heartPopGlow 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* Entrance animations — GPU only during animation */
