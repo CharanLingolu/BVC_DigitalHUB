@@ -173,20 +173,19 @@
 
 @keyframes heartPop {
   0% {
-    transform: scale(0.6);
-    opacity: 0.5;
+    transform: scale(1);
   }
-  50% {
-    transform: scale(1.25);
-    opacity: 1;
+  40% {
+    transform: scale(1.5);
   }
   100% {
     transform: scale(1);
   }
 }
 
-.heart-pop {
-  animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Renamed to match your React component (.animate-pop) */
+.animate-pop {
+  animation: heartPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49);
 }
 
 /* Entrance animations — GPU only during animation */

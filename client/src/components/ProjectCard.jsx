@@ -41,7 +41,7 @@ const ProjectCard = ({
   const handleLike = async (e) => {
     e.stopPropagation();
 
-    // ✅ FIXED: Check for Staff Token too
+    // ✅ CHECK ALL TOKENS (Student, Admin, Staff)
     const token =
       localStorage.getItem("token") ||
       localStorage.getItem("adminToken") ||
@@ -56,7 +56,7 @@ const ProjectCard = ({
     setIsLiking(true);
 
     try {
-      // ✅ FIXED: Changed POST to PUT to match backend route
+      // ✅ USE PUT to match backend
       const { data } = await API.put(`/projects/${project._id}/like`);
       setLikes(data.likes);
     } catch (err) {

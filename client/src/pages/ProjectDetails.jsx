@@ -13,10 +13,13 @@ import {
   User,
   Loader2,
 } from "lucide-react";
+
+// ✅ Import BOTH Navbars
 import Navbar from "../components/Navbar";
+import AdminNavbar from "../admin/components/AdminNavbar"; // Adjust path if needed
+
 import API from "../services/api";
 
-// ✅ FIXED HOOK: Now supports User, Admin, AND Staff
 const useCurrentUserId = () => {
   const [userId, setUserId] = useState(null);
 
@@ -24,7 +27,7 @@ const useCurrentUserId = () => {
     try {
       const userRaw = localStorage.getItem("user");
       const adminRaw = localStorage.getItem("admin");
-      const staffRaw = localStorage.getItem("staffData"); // Check for staff data
+      const staffRaw = localStorage.getItem("staffData");
 
       if (userRaw) {
         const user = JSON.parse(userRaw);
@@ -74,6 +77,9 @@ const ProjectDetails = () => {
   const navigate = useNavigate();
   const currentUserId = useCurrentUserId();
 
+  // ✅ Check if Admin is logged in
+  const isAdmin = !!localStorage.getItem("adminToken");
+
   const [project, setProject] = useState(null);
   const [isLiking, setIsLiking] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -82,7 +88,6 @@ const ProjectDetails = () => {
   useEffect(() => {
     let cancelled = false;
 
-    // ✅ FIXED: Check for ANY token (User, Admin, or Staff)
     const token = localStorage.getItem("token");
     const adminToken = localStorage.getItem("adminToken");
     const staffToken = localStorage.getItem("staffToken");
@@ -127,7 +132,6 @@ const ProjectDetails = () => {
   const likesCount = project.likes.length;
 
   const handleLike = async () => {
-    // ✅ FIXED: Allow Staff token to like
     const token = localStorage.getItem("token");
     const adminToken = localStorage.getItem("adminToken");
     const staffToken = localStorage.getItem("staffToken");
@@ -141,8 +145,6 @@ const ProjectDetails = () => {
     setIsLiking(true);
 
     try {
-      // Note: Make sure your API method matches backend (PUT vs POST)
-      // We fixed backend to PUT previously.
       const { data } = await API.put(`/projects/${project._id}/like`);
 
       setProject((prev) => ({
@@ -228,12 +230,13 @@ const ProjectDetails = () => {
               : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400"
           }`}
         >
+          {/* ✅ UPDATED HEART ICON (Matches ProjectCard) */}
           <Heart
             size={20}
             className={`transition-all duration-300 ${
               isLiked
-                ? "fill-rose-500 stroke-rose-500 scale-110"
-                : "stroke-current"
+                ? "fill-rose-500 stroke-rose-500 animate-pop drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+                : "fill-none stroke-current"
             }`}
           />
           <span className="text-base lg:text-lg">{likesCount}</span>
@@ -285,10 +288,22 @@ const ProjectDetails = () => {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
+        
+        /* ✅ ADDED: Consistent Heart Pop Animation (Matches ProjectCard) */
+        @keyframes heartPop {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.5); }
+          100% { transform: scale(1); }
+        }
+        .animate-pop { 
+          animation: heartPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49); 
+        }
       `}</style>
 
       <div className="min-h-screen lg:h-screen w-full bg-slate-50 dark:bg-[#030407] text-slate-900 dark:text-white flex flex-col lg:overflow-hidden transition-colors duration-500 relative">
-        <Navbar />
+        {/* ✅ DYNAMIC NAVBAR SWITCHER */}
+        {isAdmin ? <AdminNavbar /> : <Navbar />}
+
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-[120px] animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-rose-500/10 dark:bg-rose-600/10 rounded-full blur-[140px]" />

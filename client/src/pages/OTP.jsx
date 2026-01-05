@@ -116,7 +116,7 @@ const OTP = () => {
           </p>
         </div>
 
-        <form onSubmit={handleVerify} className="space-y-8">
+        <form onSubmit={handleVerify} className="space-y-6">
           <div className="relative group">
             <input
               type="text"

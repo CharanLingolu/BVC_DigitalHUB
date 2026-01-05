@@ -311,8 +311,23 @@ const Projects = () => {
           background-size: 200% 200%;
           animation: gradient-x 5s ease infinite;
         }
-        .scale-in-center { animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
-        @keyframes scale-in-center { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .scale-in-center { 
+          animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; 
+        }
+        @keyframes scale-in-center { 
+          0% { transform: scale(0.9); opacity: 0; } 
+          100% { transform: scale(1); opacity: 1; } 
+        }
+        
+        /* ✅ ADDED: Heart Pop Animation for Global Context */
+        @keyframes heartPop {
+          0% { transform: scale(1); }
+          40% { transform: scale(1.5); }
+          100% { transform: scale(1); }
+        }
+        .animate-pop { 
+          animation: heartPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); 
+        }
       `}</style>
     </div>
   );
