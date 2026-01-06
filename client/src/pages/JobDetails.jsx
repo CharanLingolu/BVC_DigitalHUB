@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
-import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
+import DynamicNavbar from "../components/DynamicNavbar";
+import { jwtDecode } from "jwt-decode";
 import {
   Briefcase,
   MapPin,
@@ -22,8 +23,35 @@ const NAVBAR_HEIGHT = 70;
 const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ IMPROVED LOGIC: Get user data or fallback to token check
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const token = localStorage.getItem("token");
+
+  // Check role
+  const isAdminView = location.pathname.startsWith("/admin");
+  const isStaff =
+    user?.role === "staff" || !!localStorage.getItem("staffToken");
+
+  // ✅ DOMAIN CHECK:
+  // If 'user' object exists, check user.email.
+  // If not, we assume the user isn't fully synced or domain isn't validated.
+  const rawEmail = user?.email || user?.userEmail || "";
+  const isAuthorizedStudent = rawEmail
+    .toLowerCase()
+    .trim()
+    .endsWith("@bvcgroup.in");
+
+  // ✅ FINAL HIDE LOGIC:
+  // Hide if: Admin View OR Staff OR (it's a student view but email is wrong)
+  // We only block students if we actually have an email and it's wrong.
+  // If no user object exists but a token does, you might want to allow it or debug your login.
+  const shouldHideApply =
+    isAdminView || isStaff || (user && !isAuthorizedStudent);
 
   useEffect(() => {
     API.get(`/info/jobs/${id}`)
@@ -32,6 +60,7 @@ const JobDetails = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // ... (keep the rest of your rendering code)
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#030407]">
@@ -47,7 +76,7 @@ const JobDetails = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#030407] text-slate-900 dark:text-white relative transition-all duration-700 flex flex-col">
-      <Navbar />
+      <DynamicNavbar />
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-5%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-cyan-600/25 blur-[100px] md:blur-[160px] animate-pulse rounded-full" />
@@ -58,7 +87,6 @@ const JobDetails = () => {
         className="relative z-10 w-full max-w-6xl mx-auto px-4 md:px-8 flex flex-col flex-1 pb-10"
         style={{ paddingTop: NAVBAR_HEIGHT + 20 }}
       >
-        {/* Navigation Bar */}
         <div className="flex items-center justify-between mb-8 shrink-0">
           <button
             onClick={() => navigate(-1)}
@@ -73,7 +101,7 @@ const JobDetails = () => {
         </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-10">
-          {/* LEFT: COMPANY INFO CARD */}
+          {/* LEFT CARD */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="relative group overflow-hidden rounded-[2.5rem] bg-white/60 dark:bg-white/[0.03] backdrop-blur-3xl border border-white/40 dark:border-white/10 p-8 shadow-2xl flex flex-col items-center text-center">
               <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-xl mb-6">
@@ -106,7 +134,7 @@ const JobDetails = () => {
             </div>
           </div>
 
-          {/* RIGHT: JOB DETAILS */}
+          {/* RIGHT CONTENT */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             <div className="relative rounded-[2.5rem] bg-white/40 dark:bg-white/[0.02] backdrop-blur-3xl border border-white/40 dark:border-white/10 p-8 lg:p-10 flex flex-col shadow-2xl overflow-hidden h-full">
               <div className="flex items-center justify-between mb-8">
@@ -121,7 +149,7 @@ const JobDetails = () => {
                     {job.title}
                   </h1>
                 </div>
-                <div className="hidden sm:flex flex-col items-end">
+                <div className="hidden sm:flex flex-col items-end text-right">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
                     Deadline
                   </p>
@@ -156,8 +184,7 @@ const JobDetails = () => {
                         Key Responsibility
                       </h4>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Join our dynamic team and drive innovation in
-                        high-impact projects.
+                        Join our dynamic team and drive innovation.
                       </p>
                     </div>
                   </div>
@@ -171,8 +198,7 @@ const JobDetails = () => {
                         Growth & Learning
                       </h4>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Opportunity to work with the latest tech stack and
-                        industry mentors.
+                        Work with latest tech and mentors.
                       </p>
                     </div>
                   </div>
@@ -181,16 +207,46 @@ const JobDetails = () => {
 
               {/* Action Area */}
               <div className="pt-10 mt-10 border-t border-slate-900/10 dark:border-white/10 flex flex-col sm:flex-row items-center gap-4">
-                <button
-                  onClick={() => navigate(`/jobs/${job._id}/apply`)}
-                  className="w-full sm:flex-1 group relative overflow-hidden py-5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-black text-lg tracking-[0.1em] uppercase shadow-[0_20px_40px_-10px_rgba(6,182,212,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-500"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-3">
-                    Start Application
-                    <ExternalLink className="w-5 h-5" />
-                  </span>
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                </button>
+                {/* Show Apply Button only if NOT hidden by logic */}
+                {!shouldHideApply ? (
+                  <button
+                    onClick={() => navigate(`/jobs/${job._id}/apply`)}
+                    className="w-full sm:flex-1 group relative overflow-hidden py-5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-black text-lg tracking-[0.1em] uppercase shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-500"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                      Start Application
+                      <ExternalLink className="w-5 h-5" />
+                    </span>
+                  </button>
+                ) : (
+                  /* ✅ Only show restriction message if user is NOT admin, NOT staff, AND domain is wrong */
+                  !isAdminView &&
+                  !isStaff &&
+                  !isAuthorizedStudent && (
+                    <div className="w-full sm:flex-1 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold text-center">
+                      🔒 Applications are restricted to @bvcgroup.in domain
+                      users only.
+                    </div>
+                  )
+                )}
+
+                {/* Official Site link - expanded to full width if apply is hidden */}
+                {job.link && (
+                  <a
+                    href={job.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-full sm:w-fit px-8 py-5 rounded-2xl bg-white/10 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-black text-sm uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2 ${
+                      shouldHideApply ? "w-full" : ""
+                    }`}
+                  >
+                    Official Site
+                    <Zap
+                      size={16}
+                      className="text-orange-500 fill-orange-500"
+                    />
+                  </a>
+                )}
               </div>
             </div>
           </div>

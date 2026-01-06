@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom"; // ✅ Added useLocation
 import API from "../services/api";
-import Navbar from "../components/Navbar";
+import DynamicNavbar from "../components/DynamicNavbar"; // ✅ Changed Navbar to DynamicNavbar
 import { toast } from "react-toastify";
 import {
   Calendar,
@@ -13,6 +13,7 @@ import {
   Tag,
   Copy,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 
 const NAVBAR_HEIGHT = 70;
@@ -20,8 +21,12 @@ const NAVBAR_HEIGHT = 70;
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Define location here
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ Identify if this is the Admin View
+  const isAdminView = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     API.get(`/info/events/${id}`)
@@ -71,7 +76,8 @@ const EventDetails = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#030407] text-slate-900 dark:text-white relative transition-all duration-700 flex flex-col">
-      <Navbar />
+      {/* ✅ Use DynamicNavbar here */}
+      <DynamicNavbar />
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-5%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-indigo-600/25 blur-[100px] md:blur-[160px] animate-pulse rounded-full" />
@@ -84,14 +90,15 @@ const EventDetails = () => {
       >
         <div className="flex items-center justify-between mb-6 shrink-0">
           <button
-            onClick={() => navigate(-1)}
+            // ✅ Fix: Navigate back based on view
+            onClick={() => navigate(isAdminView ? "/admin/events" : "/events")}
             className="group flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-2xl border border-white/20 text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-lg active:scale-95"
           >
             <ArrowLeft
               size={16}
               className="group-hover:-translate-x-1 transition-transform"
             />
-            Back
+            Back to Events
           </button>
           <button
             onClick={() => {
@@ -109,7 +116,6 @@ const EventDetails = () => {
           <div className="lg:col-span-5 relative group shrink-0">
             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-500 rounded-[2.5rem] blur-md opacity-20 transition duration-1000" />
             <div className="relative w-full aspect-[4/3] lg:h-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl bg-[#0a0a0a]">
-              {/* ✅ Conditional Check for Image */}
               {event.banner ? (
                 <img
                   src={event.banner}
@@ -122,7 +128,6 @@ const EventDetails = () => {
                   }}
                 />
               ) : (
-                /* ✅ Display this if event.banner is null/empty */
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-10 text-center">
                   <div className="p-4 rounded-full bg-indigo-500/10 mb-4 border border-indigo-500/20">
                     <Sparkles className="w-12 h-12 text-indigo-400 animate-pulse" />
@@ -212,24 +217,13 @@ const EventDetails = () => {
                   />
                 </button>
 
-                {/* Increased size of calendar button */}
                 <button
                   onClick={handleAddToCalendar}
-                  className="flex-1 group relative overflow-hidden 
-    py-4 md:py-6 /* 👈 Reduced padding on mobile, larger on desktop */
-    rounded-2xl 
-    bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-rose-600
-    text-white font-black 
-    text-[10px] md:text-base /* 👈 Smaller text on tiny screens */
-    tracking-[0.1em] md:tracking-[0.2em] /* 👈 Tightened tracking for mobile */
-    uppercase
-    shadow-[0_20px_40px_-10px_rgba(217,70,239,0.5)] 
-    hover:scale-[1.02] active:scale-95 transition-all duration-500"
+                  className="flex-1 group relative overflow-hidden py-4 md:py-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-rose-600 text-white font-black text-[10px] md:text-base tracking-[0.1em] md:tracking-[0.2em] uppercase shadow-[0_20px_40px_-10px_rgba(217,70,239,0.5)] hover:scale-[1.02] active:scale-95 transition-all duration-500"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
                     <span className="whitespace-nowrap">Add To Calendar</span>
-                    <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />{" "}
-                    {/* 👈 Responsive icon size */}
+                    <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
                   </span>
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 </button>
@@ -251,7 +245,6 @@ const EventDetails = () => {
   );
 };
 
-/* 💎 UPDATED: COMPACT GLOSSY STAT */
 const GlossyStat = ({
   icon: Icon,
   label,

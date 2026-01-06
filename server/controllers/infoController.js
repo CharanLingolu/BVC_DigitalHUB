@@ -2,7 +2,7 @@ import Staff from "../models/Staff.js";
 import Event from "../models/Event.js";
 import Job from "../models/Job.js";
 import User from "../models/User.js";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail.js";
 
 // 📊 Get dashboard stats (Public)
 export const getStats = async (req, res) => {
@@ -49,11 +49,11 @@ export const getJobs = async (req, res) => {
   }
 };
 
+// 🔍 Get a single job by ID
 export const getJobById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate ID format to prevent casting crashes
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ message: "Invalid Job ID format" });
     }
@@ -84,72 +84,81 @@ export const getEventById = async (req, res) => {
   }
 };
 
+// 🚀 Apply for Job (Updated to use Brevo & Modern UI)
 export const applyForJob = async (req, res) => {
+  const { id } = req.params;
   const { name, email, phone } = req.body;
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
+    // Fetch job details for the email
+    const job = await Job.findById(id);
+    const jobTitle = job ? job.title : "the selected position";
+    const companyName = job ? job.company : "BVC Partner";
 
-    await transporter.sendMail({
-      from: `"BVC Digital Hub" <${process.env.MAIL_USER}>`,
+    // ✅ SEND EMAIL VIA BREVO
+    await sendEmail({
       to: email,
-      subject: "Job Application Submitted Successfully",
+      subject: `🚀 Application Received: ${jobTitle}`,
       html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        /* Fallback for clients that support internal styles */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-      </style>
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-      
-      <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden;">
-        
-        <div style="background-color: #0056b3; padding: 30px 20px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">BVC Digital Hub</h1>
-        </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+          </style>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #0f172a; font-family: 'Inter', sans-serif;">
+          <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            
+            <div style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 60px 20px; text-align: center; color: white;">
+              <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px;">
+                BVC DigitalHub Careers
+              </div>
+              <h1 style="margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -0.05em;">Application Successful!</h1>
+            </div>
 
-        <div style="padding: 40px 30px; color: #333333; line-height: 1.6;">
-          <h2 style="color: #0056b3; font-size: 22px; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Application Received</h2>
-          
-          <p style="font-size: 16px;">Dear <strong>${name}</strong>,</p>
+            <div style="padding: 40px 30px; background-color: #ffffff;">
+              <p style="font-size: 18px; color: #1e293b; margin-bottom: 24px;">Hi <strong>${name}</strong>,</p>
+              
+              <p style="color: #475569; font-size: 16px; line-height: 1.7; margin-bottom: 30px;">
+                You've taken the next step in your career. Your application for <span style="color: #6366f1; font-weight: 700;">${jobTitle}</span> at <strong>${companyName}</strong> has been received and is ready for review.
+              </p>
 
-          <p style="color: #555555;">Thank you for applying through <b>BVC Digital Hub</b>. We are pleased to confirm that your application has been submitted successfully.</p>
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; margin-bottom: 30px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Submission Details</h3>
+                <div style="margin-bottom: 8px; color: #1e293b; font-size: 15px;"><strong>ID:</strong> ${id}</div>
+                <div style="margin-bottom: 8px; color: #1e293b; font-size: 15px;"><strong>Phone:</strong> ${phone}</div>
+                <div style="color: #1e293b; font-size: 15px;"><strong>Status:</strong> <span style="color: #10b981; font-weight: 700;">Pending Review</span></div>
+              </div>
 
-          <div style="background-color: #f9fbfd; border-left: 4px solid #0056b3; padding: 15px; margin: 20px 0; border-radius: 4px;">
-            <p style="margin: 0; font-size: 14px; color: #777;"><strong>Applicant Name:</strong> <span style="color: #333;">${name}</span></p>
-            <p style="margin: 10px 0 0 0; font-size: 14px; color: #777;"><strong>Contact Number:</strong> <span style="color: #333;">${phone}</span></p>
+              <div style="text-align: center; margin-top: 40px;">
+                <a href="${
+                  process.env.CLIENT_URL || "#"
+                }/jobs" style="background: #6366f1; color: #ffffff; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 900; font-size: 14px; display: inline-block; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);">
+                  View More Opportunities
+                </a>
+              </div>
+            </div>
+
+            <div style="background-color: #f1f5f9; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: #64748b; font-size: 13px; font-weight: 700;">BVC DigitalHub • Official Careers Portal</p>
+              <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 11px;">
+                © ${new Date().getFullYear()} All Rights Reserved. This is an automated notification.
+              </p>
+            </div>
           </div>
-
-          <p style="color: #555555;">Our team will review your profile carefully. If your qualifications match our requirements, we will contact you regarding the next steps.</p>
-
-          <br />
-          <p style="margin-bottom: 5px;">Best Regards,</p>
-          <p style="margin-top: 0; font-weight: bold; color: #0056b3;">BVC Digital Hub Placement Team</p>
-        </div>
-
-        <div style="background-color: #eeeeee; padding: 20px; text-align: center; font-size: 12px; color: #888888;">
-          <p style="margin: 0;">&copy; ${new Date().getFullYear()} BVC Digital Hub. All rights reserved.</p>
-          <p style="margin: 5px 0 0 0;">This is an automated message, please do not reply.</p>
-        </div>
-
-      </div>
-    </body>
-    </html>
-  `,
+        </body>
+        </html>
+      `,
     });
 
-    res.json({ message: "Mail sent successfully" });
+    res.json({
+      success: true,
+      message: "Application sent successfully via Brevo",
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to send email" });
+    console.error("❌ Application Controller Error:", error);
+    res.status(500).json({ message: "Failed to send application email" });
   }
 };

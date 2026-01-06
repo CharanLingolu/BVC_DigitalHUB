@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Move this to the top
 import AdminNavbar from "../components/AdminNavbar";
-import { useRef } from "react";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -16,10 +16,10 @@ import {
   CalendarDays,
   AlertTriangle,
   Loader2,
+  Eye, // ✅ Add Eye here
 } from "lucide-react";
 import { toast } from "react-toastify";
 import adminAPI from "../../services/adminApi";
-
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
@@ -342,6 +342,8 @@ const Events = () => {
 
 /* ================= COMPONENT: Event Card ================= */
 const EventCard = ({ event, onEdit, onDelete }) => {
+  const navigate = useNavigate();
+
   const dateObj = new Date(event.date);
   const month = dateObj
     .toLocaleString("default", { month: "short" })
@@ -349,7 +351,11 @@ const EventCard = ({ event, onEdit, onDelete }) => {
   const day = dateObj.getDate();
 
   return (
-    <div className="group relative bg-white dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/20 flex flex-col h-full">
+    <div
+      // ✅ ADDED: Navigate to details on card click
+      onClick={() => navigate(`/admin/events/${event._id}/view`)}
+      className="group relative cursor-pointer bg-white dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/20 flex flex-col h-full"
+    >
       <div className="h-52 relative overflow-hidden shrink-0">
         {event.banner ? (
           <img
@@ -399,19 +405,40 @@ const EventCard = ({ event, onEdit, onDelete }) => {
         <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-3 mb-6 flex-1">
           {event.description}
         </p>
-        <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/10 relative z-30">
+
+        <div className="flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-white/10 relative z-30">
           <button
-            onClick={onEdit}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold hover:bg-white dark:hover:bg-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/events/${event._id}/view`);
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-600 dark:bg-violet-500 text-white font-bold hover:bg-violet-700 dark:hover:bg-violet-400 hover:scale-[1.01] active:scale-95 transition-all shadow-md mb-1"
           >
-            <Edit2 size={16} /> Edit
+            <Eye size={16} /> View Full Details
           </button>
-          <button
-            onClick={onDelete}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 font-bold hover:bg-white dark:hover:bg-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
-          >
-            <Trash2 size={16} /> Delete
-          </button>
+
+          <div className="flex gap-2">
+            <button
+              // ✅ ADDED: stopPropagation to prevent card click
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold hover:bg-white dark:hover:bg-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+            >
+              <Edit2 size={16} /> Edit
+            </button>
+            <button
+              // ✅ ADDED: stopPropagation to prevent card click
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 font-bold hover:bg-white dark:hover:bg-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+            >
+              <Trash2 size={16} /> Delete
+            </button>
+          </div>
         </div>
       </div>
     </div>

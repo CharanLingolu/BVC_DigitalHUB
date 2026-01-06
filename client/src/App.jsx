@@ -310,6 +310,30 @@ function App() {
                   </AdminProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/jobs/:id/view"
+                element={
+                  <AdminProtectedRoute>
+                    <JobDetails />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/events/:id/view"
+                element={
+                  <AdminProtectedRoute>
+                    <EventDetails />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/jobs/:id/view"
+                element={
+                  <AdminProtectedRoute>
+                    <JobDetails />
+                  </AdminProtectedRoute>
+                }
+              />
 
               {/* ================= SHARED ROUTES (Staff & Students) ================= */}
 

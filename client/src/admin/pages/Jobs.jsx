@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import AdminNavbar from "../components/AdminNavbar";
+import DynamicNavbar from "../../components/DynamicNavbar";
 import {
   Briefcase,
   Plus,
@@ -16,7 +16,9 @@ import {
   Sparkles,
   AlertTriangle,
   Loader2,
+  Eye,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import adminAPI from "../../services/adminApi";
 
@@ -143,7 +145,7 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090c10] text-slate-900 dark:text-white font-sans selection:bg-cyan-500/30 transition-colors duration-300 relative overflow-x-hidden">
-      <AdminNavbar />
+      <DynamicNavbar />
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
@@ -350,23 +352,29 @@ const Jobs = () => {
 
 /* ================= COMPONENT: Job Card ================= */
 const JobCard = ({ job, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   const deadlineDate = job.deadline
     ? new Date(job.deadline).toLocaleDateString()
     : "No Deadline";
 
+  // Updated colors for better visibility and consistency
   const typeColors = {
     "Full-time":
-      "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/20",
+      "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20",
     "Part-time":
-      "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/20",
+      "bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/20",
     Internship:
-      "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/20",
+      "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20",
     Contract:
-      "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/20",
+      "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20",
   };
 
   return (
-    <div className="group relative bg-white/60 dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/20 flex flex-col h-full">
+    <div
+      // Navigates to view details on card click
+      onClick={() => navigate(`/admin/jobs/${job._id}/view`)}
+      className="group relative cursor-pointer bg-white/60 dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/20 flex flex-col h-full"
+    >
       <div className="h-40 relative overflow-hidden shrink-0 bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 p-6 flex flex-col justify-between">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
         <div className="flex justify-between items-start relative z-10">
@@ -374,7 +382,7 @@ const JobCard = ({ job, onEdit, onDelete }) => {
             <Building2 className="w-8 h-8 text-white" />
           </div>
           <span
-            className={`px-3 py-1 rounded-full backdrop-blur-md border text-xs font-bold uppercase tracking-wider ${
+            className={`px-3 py-1 rounded-full backdrop-blur-md border text-[10px] font-black uppercase tracking-wider ${
               typeColors[job.type] || typeColors["Full-time"]
             }`}
           >
@@ -386,17 +394,18 @@ const JobCard = ({ job, onEdit, onDelete }) => {
         </h3>
       </div>
 
-      <div className="p-6 pt-8 flex flex-col flex-1 relative z-10 -mt-6 rounded-t-[2.5rem] bg-white/80 dark:bg-[#161b22]/95 backdrop-blur-xl border-t border-white/20 dark:border-white/5">
+      <div className="p-6 pt-8 flex flex-col flex-1 relative z-10 -mt-6 rounded-t-[2.5rem] bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-xl border-t border-white/10 dark:border-white/5">
         <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight mb-4 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors truncate">
           {job.title}
         </h3>
+
         <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-6">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 truncate">
             <MapPin className="w-4 h-4 text-cyan-500 shrink-0" />
             <span className="truncate">{job.location}</span>
           </div>
           <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 truncate">
-            <DollarSign className="w-4 h-4 text-green-500 shrink-0" />
+            <DollarSign className="w-4 h-4 text-emerald-500 shrink-0" />
             <span className="truncate">{job.salary || "Not Disclosed"}</span>
           </div>
           <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 col-span-2 truncate">
@@ -404,19 +413,37 @@ const JobCard = ({ job, onEdit, onDelete }) => {
             Deadline: {deadlineDate}
           </div>
         </div>
-        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-3 mb-6 flex-1">
+
+        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-2 mb-6 flex-1 opacity-80">
           {job.description}
         </p>
-        <div className="flex gap-2 pt-4 border-t border-slate-200/50 dark:border-white/10 relative z-30">
+
+        <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5 relative z-30">
+          {/* STOP PROPAGATION prevents the card click from firing when clicking buttons */}
           <button
-            onClick={onEdit}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold transition-all hover:bg-indigo-100 dark:hover:bg-indigo-500/20 hover:scale-[1.02] active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/jobs/${job._id}/view`);
+            }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold text-sm hover:bg-cyan-500/20 transition-all active:scale-95"
+          >
+            <Eye size={16} /> View
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all active:scale-95"
           >
             <Edit2 size={16} /> Edit
           </button>
           <button
-            onClick={onDelete}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 font-bold transition-all hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:scale-[1.02] active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all active:scale-95"
           >
             <Trash2 size={16} /> Delete
           </button>

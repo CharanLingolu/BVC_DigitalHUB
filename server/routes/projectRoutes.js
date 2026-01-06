@@ -14,7 +14,6 @@ import {
 
 const router = express.Router();
 
-// ✅ FIX: Changed POST to PUT to match frontend calls
 router.put("/:id/like", protect, likeProject);
 
 router.post("/", protect, upload.array("media", 5), createProject);

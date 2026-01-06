@@ -20,25 +20,29 @@ import AdminNavbar from "../admin/components/AdminNavbar"; // Adjust path if nee
 
 import API from "../services/api";
 
-// Inside ProjectDetails.js - Update the hook for better ID detection
 const useCurrentUserId = () => {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     try {
+      // 1. Get all possible session objects
       const user = JSON.parse(localStorage.getItem("user"));
       const staff = JSON.parse(localStorage.getItem("staffData"));
       const admin = JSON.parse(localStorage.getItem("admin"));
 
-      const activeUser = user || staff || admin;
+      // 2. Identify who is active (Admin takes priority)
+      const activeUser = admin || staff || user;
+
       if (activeUser) {
-        // ✅ Standardize extraction: check top level then check nested .user level
+        // 3. Extract ID regardless of nested structure
         const id =
           activeUser._id ||
           activeUser.id ||
           activeUser.user?._id ||
           activeUser.user?.id;
-        setUserId(id);
+
+        // Convert to string to avoid comparison issues later
+        setUserId(id ? String(id) : null);
       }
     } catch (error) {
       console.error("Session parse error", error);
@@ -231,7 +235,7 @@ const ProjectDetails = () => {
             size={26}
             className={`transition-all duration-300 ${
               isLiked
-                ? "fill-red-500 stroke-red-500 animate-heart-pop" // ✅ Matches ProjectCard now
+                ? "fill-red-500 stroke-red-500 animate-heart-pop" // This triggers the animation
                 : "fill-none stroke-slate-400 dark:stroke-slate-600 group-hover/heart:stroke-red-500"
             }`}
           />

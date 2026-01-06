@@ -1,6 +1,6 @@
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
-import upload from "../middleware/upload.js"; // Standardized import position
+import upload from "../middleware/upload.js";
 import {
   completeOnboarding,
   getMyProfile,

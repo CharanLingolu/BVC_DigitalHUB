@@ -26,14 +26,20 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
-    // ✅ FIX: Clear ALL Auth Data
+    // 1. Remove EVERY possible auth key
     localStorage.removeItem("token");
+    localStorage.removeItem("user"); // CRITICAL: This is what Jobs.jsx checks
     localStorage.removeItem("staffToken");
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("staffData");
     localStorage.removeItem("userData");
 
-    toast.success("Logged out successfully 👋", { autoClose: 1500 });
-    setTimeout(() => navigate("/"), 1500);
+    toast.success("Logged out successfully 👋", { autoClose: 1000 });
+
+    // 2. FORCE a hard refresh instead of navigate
+    setTimeout(() => {
+      window.location.href = "/"; // This destroys the cached React state
+    }, 1000);
   };
 
   const NavLink = ({ to, children, icon: Icon }) => (

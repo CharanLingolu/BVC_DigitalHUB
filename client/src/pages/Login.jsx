@@ -42,8 +42,12 @@ const Login = () => {
 
     try {
       const res = await API.post("/auth/login", formData);
+
+      // ✅ FIX: Save BOTH the token AND the user object
       localStorage.setItem("token", res.data.token);
-      toast.success(res.data.message, {
+      localStorage.setItem("user", JSON.stringify(res.data.user)); // This stores email and role
+
+      toast.success(res.data.message || "Login Successful!", {
         autoClose: 1500,
       });
 
@@ -51,7 +55,7 @@ const Login = () => {
         navigate("/home");
       }, 1800);
     } catch (error) {
-      toast.error(error.response?.data?.message, {
+      toast.error(error.response?.data?.message || "Login failed", {
         autoClose: 1500,
       });
     } finally {

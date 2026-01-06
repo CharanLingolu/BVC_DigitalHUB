@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import {
   LayoutDashboard,
   Users,
@@ -16,7 +17,10 @@ const AdminNavbar = () => {
 
   const logout = () => {
     localStorage.removeItem("adminToken");
-    navigate("/");
+    toast.success("Admin logged out successfully! 👋", { autoClose: 1000 });
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 1000);
   };
 
   // Helper for consistent link styling

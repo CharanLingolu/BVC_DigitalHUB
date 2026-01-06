@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import Navbar from "../components/Navbar";
+import { jwtDecode } from "jwt-decode";
 import {
   Briefcase,
   MapPin,
@@ -13,6 +14,7 @@ import {
   Search,
   Zap,
   Filter,
+  Eye,
 } from "lucide-react";
 
 const Jobs = () => {
@@ -20,11 +22,47 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  // ✅ REACTIVE STATE: Tracks the current email
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+
+  const syncUser = () => {
+    const userStr = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    let email = "";
+
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        email = user?.email || user?.userEmail || "";
+      } catch (e) {
+        console.error("User parse error", e);
+      }
+    }
+
+    if (!email && token) {
+      try {
+        const decoded = jwtDecode(token);
+        email = decoded.email || decoded.userEmail || "";
+      } catch (e) {
+        console.error("Token decode error", e);
+      }
+    }
+    setCurrentUserEmail(email.toLowerCase().trim());
+  };
+
   useEffect(() => {
+    // 1. Fetch data
     API.get("/info/jobs")
       .then((res) => setJobs(res.data))
       .catch((err) => console.error("Failed to load jobs", err))
       .finally(() => setLoading(false));
+
+    // 2. Initial sync
+    syncUser();
+
+    // 3. ✅ GLOBAL FIX: Listen for any storage changes (Login/Logout in other tabs/components)
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
   }, []);
 
   const filteredJobs = useMemo(() => {
@@ -57,14 +95,9 @@ const Jobs = () => {
               <span className="text-cyan-500 dark:text-cyan-400">Portal</span>
             </h1>
           </div>
-
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
             Manage job listings, internships, and placement opportunities for
             students.
-            <span className="hidden md:inline">
-              {" "}
-              Find your next big break here.
-            </span>
           </p>
         </div>
 
@@ -82,9 +115,6 @@ const Jobs = () => {
               placeholder="Search by role, company, or location..."
               className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none text-lg font-medium"
             />
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-xs font-bold text-slate-500">
-              <Filter size={12} /> Filter
-            </div>
           </div>
         </div>
 
@@ -94,13 +124,18 @@ const Jobs = () => {
               <div
                 key={n}
                 className="h-80 rounded-[2.5rem] bg-slate-200 dark:bg-white/5 animate-pulse border border-transparent dark:border-white/5"
-              ></div>
+              />
             ))}
           </div>
         ) : filteredJobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredJobs.map((job) => (
-              <JobCard key={job._id} job={job} />
+              // ✅ Passing unique key based on both ID and Email to force re-draw
+              <JobCard
+                key={`${job._id}-${currentUserEmail}`}
+                job={job}
+                userEmail={currentUserEmail}
+              />
             ))}
           </div>
         ) : (
@@ -111,8 +146,10 @@ const Jobs = () => {
   );
 };
 
-const JobCard = ({ job }) => {
+const JobCard = ({ job, userEmail }) => {
   const navigate = useNavigate();
+  const isAuthorized = userEmail.endsWith("@bvcgroup.in");
+
   const deadlineDate = job.deadline
     ? new Date(job.deadline).toLocaleDateString()
     : "Open";
@@ -173,7 +210,7 @@ const JobCard = ({ job }) => {
           <MapPin size={14} className="text-cyan-500" />
           <span className="truncate">{job.location}</span>
         </div>
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/10 group-hover:border-orange-500/30 transition-colors">
           <Clock size={14} className="text-orange-500" />
           <span className="truncate">Due: {deadlineDate}</span>
         </div>
@@ -187,15 +224,30 @@ const JobCard = ({ job }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/jobs/${job._id}/apply`);
+            if (isAuthorized) {
+              navigate(`/jobs/${job._id}/apply`);
+            } else {
+              navigate(`/jobs/${job._id}`);
+            }
           }}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black hover:bg-cyan-600 dark:hover:bg-cyan-400 dark:hover:text-white transition-all shadow-lg hover:shadow-cyan-500/25 active:scale-[0.98] group/btn"
+          className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-[0.98] group/btn ${
+            isAuthorized
+              ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-cyan-600 dark:hover:bg-cyan-400 dark:hover:text-white shadow-cyan-500/25"
+              : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 shadow-none"
+          }`}
         >
-          Apply Now
-          <ArrowUpRight
-            size={18}
-            className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform"
-          />
+          {isAuthorized ? "Apply Now" : "View Details"}
+          {isAuthorized ? (
+            <ArrowUpRight
+              size={18}
+              className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform"
+            />
+          ) : (
+            <Eye
+              size={18}
+              className="group-hover/btn:scale-110 transition-transform"
+            />
+          )}
         </button>
       </div>
     </div>
