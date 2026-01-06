@@ -9,6 +9,8 @@ import {
   Sparkles,
   LogIn,
   ArrowLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Login = () => {
@@ -28,6 +30,7 @@ const Login = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -181,12 +184,24 @@ const Login = () => {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 required
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99]"
+                className="w-full pl-12 pr-12 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99]"
               />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
               <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
@@ -197,10 +212,13 @@ const Login = () => {
             >
               <span className="relative z-10 flex items-center gap-2">
                 {loading ? (
-                  "Authenticating..."
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Authenticating</span>
+                  </>
                 ) : (
                   <>
-                    Log In{" "}
+                    Log In
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </>
                 )}

@@ -150,7 +150,7 @@ const Home = () => {
             <div className="max-w-3xl space-y-8 text-center lg:text-left relative z-10">
               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-[11px] font-black uppercase tracking-[0.3em]">
                 <Zap size={14} className="fill-current animate-bounce" />
-                Live Status • 2025
+                Live Status • 2026
               </div>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-slate-900 dark:text-white">

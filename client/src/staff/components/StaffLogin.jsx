@@ -7,9 +7,9 @@ import {
   Mail,
   Lock,
   ArrowRight,
-  UserCircle,
   ArrowLeft,
-  Sparkles,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 // ✅ GET THE API URL FROM YOUR .ENV
@@ -21,13 +21,14 @@ const StaffLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Added for toggle logic
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // ✅ Updated endpoint for staff login
+      // ✅ Logic preserved: endpoint and payload remain exactly as requested
       const res = await axios.post(`${API_BASE_URL}/staff/auth/login`, {
         email,
         password,
@@ -56,9 +57,9 @@ const StaffLogin = () => {
       {/* Background Effects */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 dark:opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow" />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" />
         <div
-          className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-violet-500/10 dark:bg-violet-600/20 rounded-full blur-[120px] animate-pulse-slow"
+          className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-violet-500/10 dark:bg-violet-600/20 rounded-full blur-[120px] animate-pulse"
           style={{ animationDelay: "2s" }}
         />
       </div>
@@ -67,6 +68,7 @@ const StaffLogin = () => {
       <div className="relative z-10 w-full max-w-md bg-white/70 dark:bg-[#161b22]/60 backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/50 dark:border-white/10 animate-fade-in-up overflow-hidden">
         {/* Back Button */}
         <button
+          type="button"
           onClick={() => navigate("/")}
           className="absolute top-6 left-6 p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-indigo-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-transparent hover:border-indigo-500/20"
           title="Back to Home"
@@ -93,6 +95,7 @@ const StaffLogin = () => {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
+          {/* Email Input */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -107,20 +110,34 @@ const StaffLogin = () => {
             />
           </div>
 
+          {/* Password Input */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             </div>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Your Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0d1117]/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all hover:bg-white dark:hover:bg-[#0d1117]"
+              className="w-full pl-12 pr-12 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0d1117]/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all hover:bg-white dark:hover:bg-[#0d1117]"
             />
+            {/* Toggle Visibility Button */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

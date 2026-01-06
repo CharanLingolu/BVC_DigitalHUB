@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const Landing = () => {
-  const navigate = useNavigate(); // ✅ Initialize navigate
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090c10] text-slate-900 dark:text-white transition-colors duration-300 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
@@ -32,7 +32,7 @@ const Landing = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
                 </span>
                 <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                  New Portal for 2025
+                  New Portal for 2026
                 </span>
               </div>
 
@@ -134,7 +134,6 @@ const Landing = () => {
           </div>
 
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* ✅ Added onClick handlers to redirect to Login */}
             <FeatureCard
               icon="🚀"
               title="Student Projects"
@@ -163,7 +162,6 @@ const Landing = () => {
   );
 };
 
-// ✅ Updated component to handle onClick and cursor-pointer
 const FeatureCard = ({ icon, title, desc, gradient, onClick }) => (
   <div
     onClick={onClick}

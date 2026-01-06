@@ -9,6 +9,8 @@ import {
   ArrowRight,
   LayoutDashboard,
   ArrowLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 // ✅ GET THE API URL FROM YOUR .ENV
@@ -20,6 +22,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -107,14 +110,29 @@ const AdminLogin = () => {
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
             </div>
+
             <input
-              type="password"
+              type={showPassword ? "text" : "password"} // Change 1: Dynamic type
               placeholder="Secure Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0d1117]/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all hover:bg-white dark:hover:bg-[#0d1117]"
+              // Note: Increased right padding (pr-12) so text doesn't hide behind the eye
+              className="w-full pl-12 pr-12 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0d1117]/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all hover:bg-white dark:hover:bg-[#0d1117]"
             />
+
+            {/* Change 2: The Eye Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
           </div>
 
           <button
